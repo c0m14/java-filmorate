@@ -96,6 +96,10 @@ public class FilmController {
     }
 
     private void checkFilmReleaseDate(LocalDate releaseDate) {
+        if (releaseDate == null) {
+            log.error("\"Release Date\" is absent in request");
+            throw new InvalidFilmFieldsException("\"Release Date\" is absent in request");
+        }
         if (releaseDate
                 .isBefore(LocalDate.of(1895, 12, 28))) {
             log.error("\"Release Date\" must be after 28-12-1895: {}", formatter.format(releaseDate));
