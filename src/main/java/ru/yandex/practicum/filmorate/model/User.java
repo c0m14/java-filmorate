@@ -22,8 +22,7 @@ public class User {
             @JsonProperty("email")
             String email,
             @JsonProperty("birthday")
-            LocalDate birthday)
-    {
+            LocalDate birthday) {
         this.email = email;
         this.login = login;
         this.name = name;
@@ -40,8 +39,7 @@ public class User {
             @JsonProperty("email")
             String email,
             @JsonProperty("birthday")
-            LocalDate birthday)
-    {
+            LocalDate birthday) {
         this.id = id;
         this.email = email;
         this.login = login;

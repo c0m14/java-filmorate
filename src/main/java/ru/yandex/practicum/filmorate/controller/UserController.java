@@ -20,8 +20,8 @@ import java.util.Map;
 @RequestMapping(value = "/users")
 public class UserController {
 
-    private Map<Integer, User> users = new HashMap<>();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private final Map<Integer, User> users = new HashMap<>();
     private int idCounter = 1;
 
     @PostMapping
@@ -37,7 +37,7 @@ public class UserController {
     public User updateUser(@RequestBody User user) throws InvalidUserFieldsException, UserNotExistException {
         log.debug("Got request to update user: {}", user);
         checkUserFields(user, RequestType.UPDATE);
-        if (!users.keySet().contains(user.getId())) {
+        if (!users.containsKey(user.getId())) {
             log.error("User with id {} doesn't exist", user.getId());
             throw new UserNotExistException(
                     String.format("User with id %d doesn't exist", user.getId())
