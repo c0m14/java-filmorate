@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,8 +14,10 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -690,6 +693,43 @@ public class FilmControllerTest {
         );
 
         assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+    }
+
+    //get tests
+    @Test
+    public void shouldReturnFilms() {
+        Film film = new Film(
+                "Titanic",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, film, Film.class);
+        film.setId(1);
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(1, requestedFilms.size());
+        assertTrue(requestedFilms.contains(film));
+    }
+
+    @Test
+    public void shouldReturnEmptyListIfNoFilmsCreated() {
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(0, requestedFilms.size());
     }
 
 }
