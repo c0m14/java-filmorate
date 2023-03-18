@@ -102,10 +102,10 @@ public class FilmController {
         }
         if (releaseDate
                 .isBefore(LocalDate.of(1895, 12, 28))) {
-            log.error("\"Release Date\" must be after 28-12-1895: {}", formatter.format(releaseDate));
+            log.error("\"Release Date\" must be after 1895-12-28: {}", formatter.format(releaseDate));
             throw new InvalidFilmFieldsException(
                     String.format(
-                            "\"Release Date\" must be after 28-12-1895: %s",
+                            "\"Release Date\" must be after 1895-12-28: %s",
                             formatter.format(releaseDate)
                     )
             );
