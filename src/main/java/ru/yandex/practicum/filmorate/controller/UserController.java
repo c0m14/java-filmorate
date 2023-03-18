@@ -95,7 +95,7 @@ public class UserController {
     }
 
     private void checkUserName(User user) {
-        if (user.getName() == null) {
+        if (user.getName() == null || user.getName().isBlank()) {
             log.warn("Name is empty, login used instead");
             user.setName(user.getLogin());
         }
