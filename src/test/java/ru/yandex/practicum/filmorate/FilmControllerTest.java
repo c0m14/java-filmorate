@@ -60,7 +60,7 @@ public class FilmControllerTest {
         Film createdFilm = testRestTemplate.postForObject(filmsUrl, film, Film.class);
 
         film.setId(1);
-        assertEquals(film, createdFilm);
+        assertEquals(film, createdFilm, "Film creation Error");
     }
 
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -75,7 +75,7 @@ public class FilmControllerTest {
 
         Film createdFilm = testRestTemplate.postForObject(filmsUrl, film, Film.class);
 
-        assertEquals(1, createdFilm.getId());
+        assertEquals(1, createdFilm.getId(), "Id is not correct");
     }
 
     @Test
@@ -95,7 +95,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -109,7 +109,7 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -129,7 +129,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -149,7 +149,7 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -169,7 +169,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -190,7 +190,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -204,7 +204,7 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -224,7 +224,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -245,7 +245,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -266,7 +266,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -287,7 +287,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -302,7 +302,7 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
     }
 
     //put tests
@@ -324,7 +324,7 @@ public class FilmControllerTest {
         Film updatedFilm = testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class)
                 .getBody();
 
-        assertEquals(film, updatedFilm);
+        assertEquals(film, updatedFilm, "Updated film is not correct");
     }
 
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -344,7 +344,7 @@ public class FilmControllerTest {
         Film updatedFilm = testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class)
                 .getBody();
 
-        assertEquals(createdFilm.getId(), updatedFilm.getId());
+        assertEquals(createdFilm.getId(), updatedFilm.getId(), "Id has changed");
     }
 
     @Test
@@ -371,7 +371,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -397,7 +400,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -424,7 +430,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -456,7 +465,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -483,7 +495,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -511,7 +526,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -537,7 +555,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -564,7 +585,9 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code");
     }
 
     @Test
@@ -592,7 +615,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -618,7 +644,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -644,7 +673,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -669,7 +701,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     @Test
@@ -695,7 +730,10 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500), filmResponseEntity.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(500),
+                filmResponseEntity.getStatusCode(),
+                "Wrong status code"
+        );
     }
 
     //get tests
@@ -719,8 +757,8 @@ public class FilmControllerTest {
                 }
         ).getBody();
 
-        assertEquals(1, requestedFilms.size());
-        assertTrue(requestedFilms.contains(film));
+        assertEquals(1, requestedFilms.size(), "Wrong number of returned elements");
+        assertTrue(requestedFilms.contains(film), "Expected element is not in List");
     }
 
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -734,7 +772,7 @@ public class FilmControllerTest {
                 }
         ).getBody();
 
-        assertEquals(0, requestedFilms.size());
+        assertEquals(0, requestedFilms.size(), "Wrong number of returned elements");
     }
 
 }
