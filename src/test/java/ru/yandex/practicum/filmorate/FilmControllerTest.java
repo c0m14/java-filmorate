@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FilmControllerTest {
 
     @Autowired
@@ -48,6 +47,7 @@ public class FilmControllerTest {
     }
 
     //post tests
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldCreateFilm() {
         Film film = new Film(
@@ -63,6 +63,7 @@ public class FilmControllerTest {
         assertEquals(film, createdFilm);
     }
 
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldIncrementIdCounterWhenFilmCreating() {
         Film film = new Film(
@@ -305,6 +306,7 @@ public class FilmControllerTest {
     }
 
     //put tests
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldUpdateFilm() {
         Film film = new Film(
@@ -325,6 +327,7 @@ public class FilmControllerTest {
         assertEquals(film, updatedFilm);
     }
 
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldNotIncrementIdCounterWhenFilmUpdating() {
         Film film = new Film(
@@ -696,6 +699,7 @@ public class FilmControllerTest {
     }
 
     //get tests
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldReturnFilms() {
         Film film = new Film(
@@ -719,6 +723,7 @@ public class FilmControllerTest {
         assertTrue(requestedFilms.contains(film));
     }
 
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldReturnEmptyListIfNoFilmsCreated() {
         List<Film> requestedFilms = testRestTemplate.exchange(
