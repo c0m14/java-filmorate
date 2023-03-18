@@ -86,7 +86,7 @@ public class UserController {
     }
 
     private void checkUserLogin(String login) throws InvalidUserFieldsException {
-        if (login.isBlank() || login.contains(" ")) {
+        if (login ==null || login.isBlank() || login.contains(" ")) {
             log.error("\"Login\" shouldn't be empty or contain spaces: {}", login);
             throw new InvalidUserFieldsException(
                     String.format("\"Login\" shouldn't be empty or contain spaces: %s", login)
