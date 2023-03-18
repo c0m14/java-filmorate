@@ -77,7 +77,7 @@ public class UserController {
     }
 
     private void checkUserEmail(String email) throws InvalidUserFieldsException {
-        if (email.isBlank() || !email.contains("@")) {
+        if (email == null || email.isBlank() || !email.contains("@")) {
             log.error("\"Email\" isn't correct: {}", email);
             throw new InvalidUserFieldsException(
                     String.format("\"Email\" isn't correct: %s", email)
