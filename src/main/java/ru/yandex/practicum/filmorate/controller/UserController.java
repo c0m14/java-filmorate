@@ -102,10 +102,14 @@ public class UserController {
     }
 
     private void checkUserBirthdate(LocalDate birthday) throws InvalidUserFieldsException {
+        if (birthday == null) {
+            log.error("\"Birthday\" is null");
+            throw new InvalidUserFieldsException("\"Birthday\" is null");
+        }
         if (birthday.isAfter(LocalDate.now())) {
-            log.error("\"Birthdate\" is incorrect: {}", formatter.format(birthday));
+            log.error("\"Birthday\" is incorrect: {}", formatter.format(birthday));
             throw new InvalidUserFieldsException(
-                    String.format("\"Birthdate\" is incorrect: %s", formatter.format(birthday))
+                    String.format("\"Birthday\" is incorrect: %s", formatter.format(birthday))
             );
         }
     }
