@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.exceptions.InvalidUserFieldsException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
+import javax.validation.Valid;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class UserController {
     private int idCounter = 1;
 
     @PostMapping
-    public User createUser(@RequestBody User user) throws InvalidUserFieldsException {
+    public User createUser(@Valid @RequestBody User user) throws InvalidUserFieldsException {
         log.debug("Got request to create user: {}", user);
         checkUserFields(user, RequestType.CREATE);
         user.setId(idCounter++);
@@ -34,7 +34,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) throws InvalidUserFieldsException, UserNotExistException {
+    public User updateUser(@Valid @RequestBody User user) throws InvalidUserFieldsException, UserNotExistException {
         log.debug("Got request to update user: {}", user);
         checkUserFields(user, RequestType.UPDATE);
         if (!users.containsKey(user.getId())) {
@@ -54,11 +54,8 @@ public class UserController {
 
     private void checkUserFields(User user, RequestType requestType) throws InvalidUserFieldsException {
         checkUserId(user.getId(), requestType);
-        checkUserEmail(user.getEmail());
         checkUserLogin(user.getLogin());
         checkUserName(user);
-        checkUserBirthdate(user.getBirthday());
-
     }
 
     private void checkUserId(int id, RequestType requestType) throws InvalidUserFieldsException {
@@ -76,20 +73,11 @@ public class UserController {
         }
     }
 
-    private void checkUserEmail(String email) throws InvalidUserFieldsException {
-        if (email == null || email.isBlank() || !email.contains("@")) {
-            log.error("\"Email\" isn't correct: {}", email);
-            throw new InvalidUserFieldsException(
-                    String.format("\"Email\" isn't correct: %s", email)
-            );
-        }
-    }
-
     private void checkUserLogin(String login) throws InvalidUserFieldsException {
-        if (login ==null || login.isBlank() || login.contains(" ")) {
-            log.error("\"Login\" shouldn't be empty or contain spaces: {}", login);
+        if (login.contains(" ")) {
+            log.error("\"Login\" shouldn't contain spaces: {}", login);
             throw new InvalidUserFieldsException(
-                    String.format("\"Login\" shouldn't be empty or contain spaces: %s", login)
+                    String.format("\"Login\" shouldn't contain spaces: %s", login)
             );
         }
     }
@@ -98,19 +86,6 @@ public class UserController {
         if (user.getName() == null || user.getName().isBlank()) {
             log.warn("Name is empty, login used instead");
             user.setName(user.getLogin());
-        }
-    }
-
-    private void checkUserBirthdate(LocalDate birthday) throws InvalidUserFieldsException {
-        if (birthday == null) {
-            log.error("\"Birthday\" is null");
-            throw new InvalidUserFieldsException("\"Birthday\" is null");
-        }
-        if (birthday.isAfter(LocalDate.now())) {
-            log.error("\"Birthday\" is incorrect: {}", formatter.format(birthday));
-            throw new InvalidUserFieldsException(
-                    String.format("\"Birthday\" is incorrect: %s", formatter.format(birthday))
-            );
         }
     }
 }

@@ -112,7 +112,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfEmailIsAbsentWhenUserCreating() {
+    public void shouldReturn400IfEmailIsAbsentWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"login\": \"login\"," +
@@ -127,14 +127,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfEmailIsEmptyWhenUserCreating() {
+    public void shouldReturn400IfEmailIsEmptyWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"email\": \" \"," +
@@ -150,14 +150,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfEmailNotContainsSymbolAtWhenUserCreating() {
+    public void shouldReturn400IfEmailNotContainsSymbolAtWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"email\": \"email&domen.ru\"," +
@@ -173,14 +173,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfLoginIsAbsentWhenUserCreating() {
+    public void shouldReturn400IfLoginIsAbsentWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"email\": \"email@domen.ru\"," +
@@ -195,14 +195,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfLoginIsEmptyWhenUserCreating() {
+    public void shouldReturn400IfLoginIsEmptyWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"email\": \"email@domen.ru\"," +
@@ -218,7 +218,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -241,7 +241,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -264,14 +264,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfBirthdayIsAbsentWhenUserCreating() {
+    public void shouldReturn400IfBirthdayIsAbsentWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"email\": \"email@domen.ru\"," +
@@ -286,14 +286,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfBirthdayIsEmptyWhenUserCreating() {
+    public void shouldReturn400IfBirthdayIsEmptyWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"email\": \"email@domen.ru\"," +
@@ -309,14 +309,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfBirthdayIsLaterWhenNowWhenUserCreating() {
+    public void shouldReturn400IfBirthdayIsLaterWhenNowWhenUserCreating() {
         String body = "{" +
                 "\"name\": \"name\"," +
                 "\"email\": \"email@domen.ru\"," +
@@ -332,7 +332,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -356,7 +356,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -468,7 +468,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfEmailIsAbsentWhenUserUpdating() {
+    public void shouldReturn400IfEmailIsAbsentWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -491,14 +491,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfEmailIsEmptyWhenUserUpdating() {
+    public void shouldReturn400IfEmailIsEmptyWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -522,14 +522,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfEmailNotContainsSymbolAtWhenUserUpdating() {
+    public void shouldReturn400IfEmailNotContainsSymbolAtWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -553,14 +553,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfLoginIsAbsentWhenUserUpdating() {
+    public void shouldReturn400IfLoginIsAbsentWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -583,14 +583,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfLoginIsEmptyWhenUserUpdating() {
+    public void shouldReturn400IfLoginIsEmptyWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -614,7 +614,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -645,7 +645,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -676,14 +676,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfBirthdayIsAbsentWhenUserUpdating() {
+    public void shouldReturn400IfBirthdayIsAbsentWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -706,14 +706,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfBirthdayIsEmptyWhenUserUpdating() {
+    public void shouldReturn400IfBirthdayIsEmptyWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -737,14 +737,14 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfBirthdayIsLaterWhenNowWhenUserUpdating() {
+    public void shouldReturn400IfBirthdayIsLaterWhenNowWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -768,7 +768,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -798,7 +798,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -830,7 +830,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
