@@ -291,7 +291,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfIdIsSentInPostRequestWhenFilmCreating() {
+    public void shouldReturn500IfIdIsSentInRequestWhenFilmCreating() {
         Film film = new Film(
                 1,
                 "Titanic",
@@ -680,7 +680,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfIdIsAbsentInPostRequestWhenFilmUpdating() {
+    public void shouldReturn500IfIdIsAbsentInRequestWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
