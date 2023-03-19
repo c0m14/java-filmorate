@@ -708,7 +708,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfIdIsWrongInPostRequestWhenFilmUpdating() {
+    public void shouldReturn500IfIdIsWrongInRequestWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
