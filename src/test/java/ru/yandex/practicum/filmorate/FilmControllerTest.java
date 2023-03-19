@@ -708,6 +708,7 @@ public class FilmControllerTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn500IfIdIsWrongInRequestWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
