@@ -9,7 +9,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.net.URI;
@@ -23,24 +22,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserControllerTest {
 
+    private static final String HOST = "http://localhost:";
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    HttpHeaders applicationJsonHeaders;
     @Autowired
     private TestRestTemplate testRestTemplate;
     @Value(value = "${local.server.port}")
     private int PORT;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final String HOST = "http://localhost:";
     private URI usersUrl;
-    HttpHeaders applicationJsonHeaders;
-
 
     @BeforeEach
     public void beforeEach() {
         usersUrl = URI.create(
-                new StringBuilder()
-                        .append(HOST)
-                        .append(PORT)
-                        .append("/users")
-                        .toString()
+                HOST +
+                        PORT +
+                        "/users"
         );
         applicationJsonHeaders = new HttpHeaders();
         applicationJsonHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -80,13 +76,11 @@ public class UserControllerTest {
 
     @Test
     public void shouldUseLoginForNameIfNameIsAbsentWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         User createdUser = testRestTemplate.exchange(
@@ -100,14 +94,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldUseLoginForNameIfNameIsEmptyWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \" \",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \" \"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         User createdUser = testRestTemplate.exchange(
@@ -121,13 +113,11 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfEmailIsAbsentWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -145,14 +135,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfEmailIsEmptyWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \" \",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \" \"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -170,14 +158,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfEmailNotContainsSymbolAtWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email&domen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email&domen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -195,13 +181,11 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfLoginIsAbsentWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -219,14 +203,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfLoginIsEmptyWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \" \",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \" \"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -244,14 +226,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfLoginIsContainsSpacesOutsideWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login \",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login \"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -269,14 +249,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfLoginIsContainsSpacesInsideWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"log in\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"log in\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -294,13 +272,11 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfBirthdayIsAbsentWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -318,14 +294,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfBirthdayIsEmptyWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \" \",")
-                .append("\"login\": \"login\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \" \"," +
+                "\"login\": \"login\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -343,14 +317,12 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfBirthdayIsLaterWhenNowWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2100-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2100-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -368,15 +340,13 @@ public class UserControllerTest {
 
     @Test
     public void shouldReturn500IfIdIsSentInPostRequestWhenUserCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -451,14 +421,12 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         User updatedUser = testRestTemplate.exchange(
@@ -480,15 +448,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \" \",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \" \"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         User updatedUser = testRestTemplate.exchange(
@@ -510,14 +476,12 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -542,15 +506,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"email\": \" \",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"email\": \" \"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -575,15 +537,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"email\": \"emaildomen.ru\",")
-                .append("\"login\": \"login\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"email\": \"emaildomen.ru\"," +
+                "\"login\": \"login\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -608,14 +568,12 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -640,15 +598,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \" \",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"login\": \" \"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -673,15 +629,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"login \",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"login\": \"login \"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -706,15 +660,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"lo gin\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"login\": \"lo gin\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -739,14 +691,12 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"login\",")
-                .append("\"email\": \"email@domen.ru\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"login\": \"login\"," +
+                "\"email\": \"email@domen.ru\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -771,15 +721,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"login\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \" \"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"login\": \"login\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \" \"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -804,15 +752,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"login\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2100-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"new name\"," +
+                "\"login\": \"login\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2100-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -837,14 +783,12 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"login\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"new name\"," +
+                "\"login\": \"login\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
@@ -870,15 +814,13 @@ public class UserControllerTest {
                 LocalDate.of(2000, 1, 1)
         );
         testRestTemplate.postForObject(usersUrl, user, User.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 3,")
-                .append("\"name\": \"new name\",")
-                .append("\"login\": \"login\",")
-                .append("\"email\": \"email@domen.ru\",")
-                .append("\"birthday\": \"2000-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 3," +
+                "\"name\": \"new name\"," +
+                "\"login\": \"login\"," +
+                "\"email\": \"email@domen.ru\"," +
+                "\"birthday\": \"2000-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
