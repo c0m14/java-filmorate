@@ -3,15 +3,23 @@ package ru.yandex.practicum.filmorate.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
 public class Film {
 
+    @NotNull
+    @NotBlank
     private final String name;
+    @NotNull
     private final LocalDate releaseDate;
+    @Positive
     private final int duration;
+    @PositiveOrZero
     private int id;
+    @NotBlank
+    @Size(max = 200)
     private String description;
 
 

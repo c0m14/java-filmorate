@@ -79,7 +79,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfNameIsAbsentWhenFilmCreating() {
+    public void shouldReturn400IfNameIsAbsentWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"description\": \"Description\",")
@@ -95,11 +95,12 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
+
     }
 
     @Test
-    public void shouldReturn500IfNameIsEmptyWhenFilmCreating() {
+    public void shouldReturn400IfNameIsEmptyWhenFilmCreating() {
         Film film = new Film(
                 "",
                 "Drama",
@@ -109,11 +110,11 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), entity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfDescriptionIsAbsentWhenFilmCreating() {
+    public void shouldReturn400IfDescriptionIsAbsentWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"name\": \"Titanic\",")
@@ -129,11 +130,11 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfDescriptionIsLongerThan200WhenFilmCreating() {
+    public void shouldReturn400IfDescriptionIsLongerThan200WhenFilmCreating() {
         Film film = new Film(
                 "Titanic",
                 "Titanic is a 1997 American epic romance and disaster film directed, written, produced," +
@@ -149,11 +150,11 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), entity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfRealiseDateIsAbsentWhenFilmCreating() {
+    public void shouldReturn400IfRealiseDateIsAbsentWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"name\": \"Titanic\",")
@@ -169,11 +170,11 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfRealiseDateIsEmptyWhenFilmCreating() {
+    public void shouldReturn400IfRealiseDateIsEmptyWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"name\": \"Titanic\",")
@@ -190,7 +191,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -204,11 +205,11 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(500), entity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfDurationIsAbsentWhenFilmCreating() {
+    public void shouldReturn400IfDurationIsAbsentWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"name\": \"Titanic\",")
@@ -224,11 +225,11 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfDurationIsEmptyWhenFilmCreating() {
+    public void shouldReturn400IfDurationIsEmptyWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"name\": \"Titanic\",")
@@ -245,11 +246,11 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfDurationIsZeroWhenFilmCreating() {
+    public void shouldReturn400IfDurationIsZeroWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"name\": \"Titanic\",")
@@ -266,11 +267,11 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfDurationIsNegativeWhenFilmCreating() {
+    public void shouldReturn400IfDurationIsNegativeWhenFilmCreating() {
         String body = new StringBuilder()
                 .append("{")
                 .append("\"name\": \"Titanic\",")
@@ -287,7 +288,7 @@ public class FilmControllerTest {
                 entity,
                 String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), response.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -302,7 +303,7 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatusCode.valueOf(500), entity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(500), entity.getStatusCode(), "Wrong status code");
     }
 
     //put tests
@@ -348,7 +349,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfNameIsAbsentWhenFilmUpdating() {
+    public void shouldReturn400IfNameIsAbsentWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -371,14 +372,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfNameIsEmptyWhenFilmUpdating() {
+    public void shouldReturn400IfNameIsEmptyWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -400,14 +401,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfDescriptionIsAbsentWhenFilmUpdating() {
+    public void shouldReturn400IfDescriptionIsAbsentWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -430,14 +431,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfDescriptionIsLongerThan200WhenFilmUpdating() {
+    public void shouldReturn400IfDescriptionIsLongerThan200WhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -465,14 +466,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfRealiseDateIsAbsentWhenFilmUpdating() {
+    public void shouldReturn400IfRealiseDateIsAbsentWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -495,14 +496,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfRealiseDateIsEmptyWhenFilmUpdating() {
+    public void shouldReturn400IfRealiseDateIsEmptyWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -526,7 +527,7 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -555,14 +556,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfDurationIsAbsentWhenFilmUpdating() {
+    public void shouldReturn400IfDurationIsAbsentWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -585,13 +586,13 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code");
     }
 
     @Test
-    public void shouldReturn500IfDurationIsEmptyWhenFilmUpdating() {
+    public void shouldReturn400IfDurationIsEmptyWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -615,14 +616,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfDurationIsZeroWhenFilmUpdating() {
+    public void shouldReturn400IfDurationIsZeroWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -644,14 +645,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
     @Test
-    public void shouldReturn500IfDurationIsNegativeWhenFilmUpdating() {
+    public void shouldReturn400IfDurationIsNegativeWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -673,7 +674,7 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -701,7 +702,7 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -731,7 +732,7 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatusCode.valueOf(500),
+        assertEquals(HttpStatus.valueOf(500),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
