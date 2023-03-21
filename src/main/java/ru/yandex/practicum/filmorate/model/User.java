@@ -1,23 +1,22 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class User {
 
     @PositiveOrZero
     private Integer id;
-
     @NotBlank
     @Email
     private String email;
-
     @NotBlank
     private String login;
     private String name;
@@ -26,13 +25,9 @@ public class User {
     private LocalDate birthday;
 
     public User(
-            @JsonProperty("login")
             String login,
-            @JsonProperty("name")
             String name,
-            @JsonProperty("email")
             String email,
-            @JsonProperty("birthday")
             LocalDate birthday) {
         this.email = email;
         this.login = login;
