@@ -36,7 +36,7 @@ public class FilmController {
     public Film updateFilm(@Valid @RequestBody Film film) throws InvalidFilmFieldsException, FilmNotExistException {
         log.debug("Got request to update film {}", film);
         checkRequestFilm(film, RequestType.UPDATE);
-        if (!films.keySet().contains(film.getId())) {
+        if (!films.containsKey(film.getId())) {
             log.error("Film with id {} doesn't exist", film.getId());
             throw new FilmNotExistException(
                     String.format("Film with id %d doesn't exist", film.getId())
