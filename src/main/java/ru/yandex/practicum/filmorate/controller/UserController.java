@@ -2,9 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.InvalidFilmFieldsException;
-import ru.yandex.practicum.filmorate.exceptions.InvalidUserFieldsException;
-import ru.yandex.practicum.filmorate.exceptions.UserNotExistException;
+import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
+import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
+import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;

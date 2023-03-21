@@ -1,12 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
+@AllArgsConstructor
 public class User {
 
     @PositiveOrZero
@@ -32,24 +34,6 @@ public class User {
             String email,
             @JsonProperty("birthday")
             LocalDate birthday) {
-        this.email = email;
-        this.login = login;
-        this.name = name;
-        this.birthday = birthday;
-    }
-
-    public User(
-            @JsonProperty("id")
-            int id,
-            @JsonProperty("login")
-            String login,
-            @JsonProperty("name")
-            String name,
-            @JsonProperty("email")
-            String email,
-            @JsonProperty("birthday")
-            LocalDate birthday) {
-        this.id = id;
         this.email = email;
         this.login = login;
         this.name = name;
