@@ -13,7 +13,7 @@ public class Film {
 
     @PositiveOrZero
     private Integer id;
-    @NotNull
+
     @NotBlank
     private final String name;
     @NotBlank
