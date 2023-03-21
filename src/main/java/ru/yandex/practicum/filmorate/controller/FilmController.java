@@ -56,9 +56,9 @@ public class FilmController {
         checkFilmReleaseDate(film.getReleaseDate());
     }
 
-    private void checkFilmId(int id, RequestType requestType) throws InvalidFilmFieldsException {
+    private void checkFilmId(Integer id, RequestType requestType) throws InvalidFilmFieldsException {
         if (requestType.equals(RequestType.CREATE)) {
-            if (id != 0) {
+            if (id != null) {
                 log.error("\"Id\" shouldn't be sent while creation");
                 throw new InvalidFilmFieldsException("\"Id\" shouldn't be sent while creation");
             }

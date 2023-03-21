@@ -58,9 +58,9 @@ public class UserController {
         checkUserName(user);
     }
 
-    private void checkUserId(int id, RequestType requestType) throws InvalidUserFieldsException {
+    private void checkUserId(Integer id, RequestType requestType) throws InvalidUserFieldsException {
         if (requestType.equals(RequestType.CREATE)) {
-            if (id != 0) {
+            if (id != null) {
                 log.error("\"Id\" shouldn't be sent while creation");
                 throw new InvalidFilmFieldsException("\"Id\" shouldn't be sent while creation");
             }

@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class Film {
 
     @PositiveOrZero
-    private int id;
+    private Integer id;
     @NotNull
     @NotBlank
     private final String name;
@@ -22,7 +22,7 @@ public class Film {
     @NotNull
     private final LocalDate releaseDate;
     @Positive
-    private final int duration;
+    private final Integer duration;
 
     public Film(
             @JsonProperty("name")
