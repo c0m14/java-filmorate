@@ -17,14 +17,14 @@ import java.util.Map;
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private Map<Integer, Film> films;
+    private Map<Long, Film> films;
     private final DateTimeFormatter formatter;
-    private int idCounter;
+    private Long idCounter;
 
     public InMemoryFilmStorage() {
         films = new HashMap<>();
         formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        idCounter = 1;
+        idCounter = 1L;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
     }
 
-    private void checkFilmId(Integer id, RequestType requestType) throws InvalidFilmFieldsException {
+    private void checkFilmId(Long id, RequestType requestType) throws InvalidFilmFieldsException {
         if (requestType.equals(RequestType.CREATE)) {
             if (id != null) {
                 log.error("\"Id\" shouldn't be sent while creation");

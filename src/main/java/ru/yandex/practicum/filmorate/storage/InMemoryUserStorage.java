@@ -18,14 +18,14 @@ import java.util.Map;
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
-    private Map<Integer, User> users;
+    private Map<Long, User> users;
     private final DateTimeFormatter formatter;
-    private int idCounter;
+    private Long idCounter;
 
     public InMemoryUserStorage() {
         users = new HashMap<>();
         formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        idCounter = 1;
+        idCounter = 1L;
     }
 
     @Override
@@ -72,7 +72,7 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
-    private void checkUserId(Integer id, RequestType requestType) throws InvalidUserFieldsException {
+    private void checkUserId(Long id, RequestType requestType) throws InvalidUserFieldsException {
         if (requestType.equals(RequestType.CREATE)) {
             if (id != null) {
                 log.error("\"Id\" shouldn't be sent while creation");
