@@ -8,18 +8,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -1070,13 +1064,13 @@ public class UserControllerTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfFriendIsAbsentWhenAddFriend() {
-            User currentUser = new User(
-                    "name",
-                    "login",
-                    "email@domen.ru",
-                    LocalDate.of(2000, 1, 1)
-            );
-            testRestTemplate.postForObject(usersUrl, currentUser, User.class);
+        User currentUser = new User(
+                "name",
+                "login",
+                "email@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(1, 2),

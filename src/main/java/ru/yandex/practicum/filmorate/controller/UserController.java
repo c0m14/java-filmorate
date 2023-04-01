@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -19,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/users")
 public class UserController {
-    private UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -43,8 +42,8 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @GetMapping ("/{id}")
-    public User findUserById(@Valid @PathVariable("id")@Min(1) Long id) {
+    @GetMapping("/{id}")
+    public User findUserById(@Valid @PathVariable("id") @Min(1) Long id) {
         log.debug("Got request to find user with id: {}", id);
         return userService.getUserFromStorageById(id);
     }
@@ -52,17 +51,17 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public void addUserFriend(
             @Valid
-            @PathVariable("id")@Min(1) Long userId,
-            @PathVariable("friendId")@Min(1) Long friendId
-                              ) {
+            @PathVariable("id") @Min(1) Long userId,
+            @PathVariable("friendId") @Min(1) Long friendId
+    ) {
         userService.addUserFriend(userId, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriendFromUser(
             @Valid
-            @PathVariable("id")@Min(1) Long userId,
-            @PathVariable("friendId")@Min(1) Long friendId
+            @PathVariable("id") @Min(1) Long userId,
+            @PathVariable("friendId") @Min(1) Long friendId
     ) {
         userService.removeUserFriend(userId, friendId);
     }
@@ -70,7 +69,7 @@ public class UserController {
     @GetMapping("/{id}/friends")
     public List<User> getFriendsForUser(
             @Valid
-            @PathVariable("id")@Min(1) Long userId
+            @PathVariable("id") @Min(1) Long userId
 
     ) {
         return userService.getFriendsForUser(userId);
@@ -79,8 +78,8 @@ public class UserController {
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(
             @Valid
-            @PathVariable("id")@Min(1) Long userId,
-            @PathVariable("otherId")@Min(1) Long otherUserId
+            @PathVariable("id") @Min(1) Long userId,
+            @PathVariable("otherId") @Min(1) Long otherUserId
     ) {
         return userService.getCommonFriends(userId, otherUserId);
     }

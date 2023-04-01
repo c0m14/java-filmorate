@@ -33,7 +33,7 @@ public class ErrorHandler {
 
     }
 
-    @ExceptionHandler ({InvalidUserFieldsException.class, InvalidFilmFieldsException.class})
+    @ExceptionHandler({InvalidUserFieldsException.class, InvalidFilmFieldsException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleInvalidFieldsExceptionWithManualValidation(InvalidFieldsException e) {
         log.error(e.getMessage());
@@ -49,7 +49,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponseList handleConstraintViolationException (ConstraintViolationException e) {
+    public ErrorResponseList handleConstraintViolationException(ConstraintViolationException e) {
         log.error(e.getMessage());
         return new ErrorResponseList(
                 e.getConstraintViolations().stream()
