@@ -54,6 +54,7 @@ public class UserController {
             @PathVariable("id") @Min(1) Long userId,
             @PathVariable("friendId") @Min(1) Long friendId
     ) {
+        log.debug("Got request to add friend with id: {} to user with id: {}", friendId, userId);
         userService.addUserFriend(userId, friendId);
     }
 
@@ -63,6 +64,7 @@ public class UserController {
             @PathVariable("id") @Min(1) Long userId,
             @PathVariable("friendId") @Min(1) Long friendId
     ) {
+        log.debug("Got request to delete friend with id: {} from user with id: {}", friendId, userId);
         userService.removeUserFriend(userId, friendId);
     }
 
@@ -72,6 +74,7 @@ public class UserController {
             @PathVariable("id") @Min(1) Long userId
 
     ) {
+        log.debug("Got request to get friends list for user with id: {}", userId);
         return userService.getFriendsForUser(userId);
     }
 
@@ -81,6 +84,7 @@ public class UserController {
             @PathVariable("id") @Min(1) Long userId,
             @PathVariable("otherId") @Min(1) Long otherUserId
     ) {
+        log.debug("Got request to find common friends to users with id {} and {}", userId, otherUserId);
         return userService.getCommonFriends(userId, otherUserId);
     }
 }
