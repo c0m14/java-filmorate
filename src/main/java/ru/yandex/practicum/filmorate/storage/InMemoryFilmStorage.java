@@ -74,12 +74,13 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (requestType.equals(RequestType.CREATE)) {
             if (id != null) {
                 log.error("\"Id\" shouldn't be sent while creation");
-                throw new InvalidFilmFieldsException("\"Id\" shouldn't be sent while creation");
+                throw new InvalidFilmFieldsException("id", "\"Id\" shouldn't be sent while creation");
             }
         } else if (requestType.equals(RequestType.UPDATE)) {
             if (id <= 0) {
                 log.error("\"Id\" isn't positive: {}", id);
                 throw new InvalidFilmFieldsException(
+                        "id",
                         String.format("\"Id\" isn't positive: %d", id));
             }
         }
@@ -90,6 +91,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .isBefore(LocalDate.of(1895, 12, 28))) {
             log.error("\"Release Date\" must be after 1895-12-28: {}", formatter.format(releaseDate));
             throw new InvalidFilmFieldsException(
+                    "releaseDate",
                     String.format(
                             "\"Release Date\" must be after 1895-12-28: %s",
                             formatter.format(releaseDate)

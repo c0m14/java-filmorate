@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -23,6 +25,7 @@ public class User {
     @NotNull
     @Past
     private LocalDate birthday;
+    private Set<Long> friends = new HashSet<>();
 
     public User(
             String login,
