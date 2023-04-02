@@ -41,6 +41,11 @@ public class UserFieldsValidator {
                 throw new InvalidUserFieldsException("Id","\"Id\" shouldn't be sent while creation");
             }
         } else if (requestType.equals(RequestType.UPDATE)) {
+            if (id == null) {
+                throw new InvalidUserFieldsException(
+                        "id",
+                        "\"Id\" shouldn't be empty in update request");
+            }
             if (id <= 0) {
                 throw new InvalidUserFieldsException(
                         "id",

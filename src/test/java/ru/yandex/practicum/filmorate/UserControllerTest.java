@@ -790,7 +790,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfIdIsAbsentInRequestWhenUserUpdating() {
+    public void shouldReturn400IfIdIsAbsentInRequestWhenUserUpdating() {
         User user = new User(
                 "name",
                 "login",
@@ -813,7 +813,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 responseEntity.getStatusCode(),
                 "Wrong status code"
         );
