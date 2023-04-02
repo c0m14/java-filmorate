@@ -18,10 +18,10 @@ public class UserFieldsValidator {
     }
 
     public void checkUserFields(User user, RequestType requestType) throws InvalidUserFieldsException {
+        checkUserId(user.getId(), requestType);
         if (requestType.equals(RequestType.UPDATE)) {
             checkIfPresent(user);
         }
-        checkUserId(user.getId(), requestType);
         checkUserLogin(user.getLogin());
         checkUserName(user);
     }
