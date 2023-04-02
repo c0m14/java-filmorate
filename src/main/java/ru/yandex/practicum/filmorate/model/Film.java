@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Data
@@ -25,12 +27,21 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
+    private Set<Long> likedFilmIds = new HashSet<>();
 
     public Film(
             String name,
             String description,
             LocalDate releaseDate,
             int duration) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+    }
+
+    public Film(long id, String name, String description, LocalDate releaseDate, int duration) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;

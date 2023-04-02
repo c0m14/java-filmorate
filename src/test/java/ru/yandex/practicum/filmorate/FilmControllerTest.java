@@ -10,10 +10,12 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,31 +24,87 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class FilmControllerTest {
 
+    private static final String HOST = "http://localhost:";
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    HttpHeaders applicationJsonHeaders;
     @Autowired
     private TestRestTemplate testRestTemplate;
     @Value(value = "${local.server.port}")
     private int PORT;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final String HOST = "http://localhost:";
     private URI filmsUrl;
-    HttpHeaders applicationJsonHeaders;
-
 
     @BeforeEach
     public void beforeEach() {
         filmsUrl = URI.create(
-                new StringBuilder()
-                        .append(HOST)
-                        .append(PORT)
-                        .append("/films")
-                        .toString()
+                HOST +
+                        PORT +
+                        "/films"
         );
         applicationJsonHeaders = new HttpHeaders();
         applicationJsonHeaders.setContentType(MediaType.APPLICATION_JSON);
 
     }
 
-    //post tests
+    private URI createGetFilmByIdUrl(int filmId) {
+        return URI.create(
+                String.format("%s%s/films/%d", HOST, PORT, filmId)
+        );
+    }
+
+    private URI createGiveOrDeleteLikeUrl(int filmId, int userId) {
+        return URI.create(
+                String.format("%s%s/films/%d/like/%d", HOST, PORT, filmId, userId)
+        );
+    }
+
+    private URI createGetPopularFilmsWithParameter(int count) {
+        return URI.create(
+                String.format("%s%s/films/popular?count=%d", HOST, PORT, count)
+        );
+    }
+
+    private URI createGetPopularFilmsNoParameter() {
+        return URI.create(
+                String.format("%s%s/films/popular", HOST, PORT)
+        );
+    }
+
+    private void createContextWithPopularFilms() {
+        User user = new User(
+                "name",
+                "login",
+                "email@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        Film film = new Film(
+                "Titanic",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        for (int i = 0; i <= 10; i++) {
+            testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+                    user,
+                    User.class);
+            testRestTemplate.postForObject(filmsUrl, film, Film.class);
+        }
+
+        int likesCount = 11;
+        for (int i = 1; i <= 11; i++) {
+            for (int j = likesCount; j >= 1; j--) {
+                testRestTemplate.exchange(
+                        createGiveOrDeleteLikeUrl(i, j),
+                        HttpMethod.PUT,
+                        null,
+                        String.class
+                );
+            }
+            likesCount--;
+        }
+    }
+
+    // =============================== POST /films ======================================
+
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldCreateFilm() {
@@ -59,7 +117,7 @@ public class FilmControllerTest {
 
         Film createdFilm = testRestTemplate.postForObject(filmsUrl, film, Film.class);
 
-        film.setId(1);
+        film.setId(1L);
         assertEquals(film, createdFilm, "Film creation Error");
     }
 
@@ -80,13 +138,11 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfNameIsAbsentWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"description\": \"Description\",")
-                .append("\"releaseDate\": \"1900-03-25\",")
-                .append("\"duration\": 200")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -115,13 +171,11 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDescriptionIsAbsentWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"Titanic\",")
-                .append("\"releaseDate\": \"1900-03-25\",")
-                .append("\"duration\": 200")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"Titanic\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -155,13 +209,11 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfRealiseDateIsAbsentWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"Titanic\",")
-                .append("\"description\": \"Description\",")
-                .append("\"duration\": 200")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"Titanic\"," +
+                "\"description\": \"Description\"," +
+                "\"duration\": 200" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -175,14 +227,12 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfRealiseDateIsEmptyWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"Titanic\",")
-                .append("\"description\": \"Description\",")
-                .append("\"duration\": 200,")
-                .append("\"releaseDate\": \" \" ")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"Titanic\"," +
+                "\"description\": \"Description\"," +
+                "\"duration\": 200," +
+                "\"releaseDate\": \" \" " +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -195,7 +245,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfReleaseDateIsBefore28d12m1895yWhenFilmCreating() {
+    public void shouldReturn400IfReleaseDateIsBefore28d12m1895yWhenFilmCreating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -205,18 +255,16 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatus.valueOf(500), entity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), entity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn400IfDurationIsAbsentWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"Titanic\",")
-                .append("\"description\": \"Description\",")
-                .append("\"releaseDate\": \"1994-01-01\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"Titanic\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1994-01-01\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -230,14 +278,12 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDurationIsEmptyWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"Titanic\",")
-                .append("\"description\": \"Description\",")
-                .append("\"releaseDate\": \"1994-01-01\",")
-                .append("\"duration\": \" \" ")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"Titanic\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1994-01-01\"," +
+                "\"duration\": \" \" " +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -251,14 +297,12 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDurationIsZeroWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"Titanic\",")
-                .append("\"description\": \"Description\",")
-                .append("\"releaseDate\": \"1994-01-01\",")
-                .append("\"duration\": 0")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"Titanic\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1994-01-01\"," +
+                "\"duration\": 0" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -272,14 +316,12 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDurationIsNegativeWhenFilmCreating() {
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"name\": \"Titanic\",")
-                .append("\"description\": \"Description\",")
-                .append("\"releaseDate\": \"1994-01-01\",")
-                .append("\"duration\": -10")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"name\": \"Titanic\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1994-01-01\"," +
+                "\"duration\": -10" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
@@ -292,9 +334,9 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfIdIsSentInRequestWhenFilmCreating() {
+    public void shouldReturn400IfIdIsSentInRequestWhenFilmCreating() {
         Film film = new Film(
-                1,
+                1L,
                 "Titanic",
                 "Drama",
                 LocalDate.parse("1850-01-01", formatter),
@@ -303,10 +345,11 @@ public class FilmControllerTest {
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
-        assertEquals(HttpStatus.valueOf(500), entity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(400), entity.getStatusCode(), "Wrong status code");
     }
 
-    //put tests
+    // =============================== PUT /films ======================================
+
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldUpdateFilm() {
@@ -317,7 +360,7 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        film.setId(1);
+        film.setId(1L);
         film.setDescription("New description");
         HttpEntity<Film> entity = new HttpEntity<>(film, applicationJsonHeaders);
 
@@ -339,7 +382,7 @@ public class FilmControllerTest {
         );
         Film createdFilm = testRestTemplate.postForObject(filmsUrl, film, Film.class);
         film.setDescription("New description");
-        film.setId(1);
+        film.setId(1L);
         HttpEntity<Film> entity = new HttpEntity<>(film, applicationJsonHeaders);
 
         Film updatedFilm = testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class)
@@ -357,14 +400,12 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"description\": \"Description\",")
-                .append("\"releaseDate\": \"1994-01-01\",")
-                .append("\"duration\": 100")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1994-01-01\"," +
+                "\"duration\": 100" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
@@ -388,7 +429,7 @@ public class FilmControllerTest {
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
-                1,
+                1L,
                 "",
                 "Drama",
                 LocalDate.parse("1994-01-01", formatter),
@@ -416,14 +457,12 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"Titanic\",")
-                .append("\"releaseDate\": \"1994-01-01\",")
-                .append("\"duration\": 100")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Titanic\"," +
+                "\"releaseDate\": \"1994-01-01\"," +
+                "\"duration\": 100" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
@@ -447,7 +486,7 @@ public class FilmControllerTest {
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updatedFilm = new Film(
-                1,
+                1L,
                 "Titanic",
                 "Titanic is a 1997 American epic romance and disaster film directed, written, produced," +
                         " and co-edited by James Cameron. Incorporating both historical and fictionalized aspects," +
@@ -481,14 +520,12 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"Titanic\",")
-                .append("\"description\": \"Drama\",")
-                .append("\"duration\": 100")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Titanic\"," +
+                "\"description\": \"Drama\"," +
+                "\"duration\": 100" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
@@ -511,15 +548,13 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"Titanic\",")
-                .append("\"releaseDate\": \" \",")
-                .append("\"description\": \"Drama\",")
-                .append("\"duration\": 100")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Titanic\"," +
+                "\"releaseDate\": \" \"," +
+                "\"description\": \"Drama\"," +
+                "\"duration\": 100" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
@@ -534,7 +569,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfReleaseDateIsBefore28d12m1895yWhenFilmUpdating() {
+    public void shouldReturn400IfReleaseDateIsBefore28d12m1895yWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -543,7 +578,7 @@ public class FilmControllerTest {
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
-                1,
+                1L,
                 "Titanic",
                 "Drama",
                 LocalDate.parse("1801-01-01", formatter),
@@ -556,7 +591,7 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatus.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -571,14 +606,12 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"Titanic\",")
-                .append("\"releaseDate\": \"1994-01-01\",")
-                .append("\"description\": \"Drama\"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Titanic\"," +
+                "\"releaseDate\": \"1994-01-01\"," +
+                "\"description\": \"Drama\"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
@@ -600,15 +633,13 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        String body = new StringBuilder()
-                .append("{")
-                .append("\"id\": 1,")
-                .append("\"name\": \"Titanic\",")
-                .append("\"releaseDate\": \"1994-01-01\",")
-                .append("\"description\": \"Drama\",")
-                .append("\"duration\": \" \"")
-                .append("}")
-                .toString();
+        String body = "{" +
+                "\"id\": 1," +
+                "\"name\": \"Titanic\"," +
+                "\"releaseDate\": \"1994-01-01\"," +
+                "\"description\": \"Drama\"," +
+                "\"duration\": \" \"" +
+                "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
@@ -632,7 +663,7 @@ public class FilmControllerTest {
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
-                1,
+                1L,
                 "Titanic",
                 "Drama",
                 LocalDate.parse("1994-01-01", formatter),
@@ -661,7 +692,7 @@ public class FilmControllerTest {
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
-                1,
+                1L,
                 "Titanic",
                 "Drama",
                 LocalDate.parse("1994-01-01", formatter),
@@ -681,7 +712,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn500IfIdIsAbsentInRequestWhenFilmUpdating() {
+    public void shouldReturn400IfIdIsAbsentInRequestWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -702,7 +733,7 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatus.valueOf(500),
+        assertEquals(HttpStatus.valueOf(400),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
@@ -710,7 +741,7 @@ public class FilmControllerTest {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void shouldReturn500IfIdIsWrongInRequestWhenFilmUpdating() {
+    public void shouldReturn404IfIdIsWrongInRequestWhenFilmUpdating() {
         Film film = new Film(
                 "Titanic",
                 "Drama",
@@ -719,7 +750,7 @@ public class FilmControllerTest {
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
-                3,
+                3L,
                 "Titanic",
                 "Drama",
                 LocalDate.parse("1994-01-01", formatter),
@@ -732,13 +763,14 @@ public class FilmControllerTest {
                 entity, Film.class
         );
 
-        assertEquals(HttpStatus.valueOf(500),
+        assertEquals(HttpStatus.valueOf(404),
                 filmResponseEntity.getStatusCode(),
                 "Wrong status code"
         );
     }
 
-    //get tests
+    // =============================== GET /films ======================================
+
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldReturnFilms() {
@@ -749,7 +781,7 @@ public class FilmControllerTest {
                 120
         );
         testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        film.setId(1);
+        film.setId(1L);
 
         List<Film> requestedFilms = testRestTemplate.exchange(
                 filmsUrl,
@@ -775,6 +807,449 @@ public class FilmControllerTest {
         ).getBody();
 
         assertEquals(0, requestedFilms.size(), "Wrong number of returned elements");
+    }
+
+    // =============================== GET /films/{id} ======================================
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnFilmById() {
+        Film film = new Film(
+                "Titanic",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, film, Film.class);
+        film.setId(1L);
+
+        Film requestedFilm = testRestTemplate.exchange(
+                createGetFilmByIdUrl(1),
+                HttpMethod.GET,
+                null,
+                Film.class
+        ).getBody();
+
+        assertEquals(film, requestedFilm);
+    }
+
+    @Test
+    public void shouldReturn400IfIdIsZero() {
+
+        ResponseEntity<Film> responseEntity = testRestTemplate.exchange(
+                createGetFilmByIdUrl(0),
+                HttpMethod.GET,
+                null,
+                Film.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfIdIsNegative() {
+
+        ResponseEntity<Film> responseEntity = testRestTemplate.exchange(
+                createGetFilmByIdUrl(-1),
+                HttpMethod.GET,
+                null,
+                Film.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturn404IfFilmNotFoundById() {
+
+        ResponseEntity<Film> responseEntity = testRestTemplate.exchange(
+                createGetFilmByIdUrl(1),
+                HttpMethod.GET,
+                null,
+                Film.class
+        );
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+    }
+
+    // =============================== PUT /films/{id}/like/{userId} ======================================
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldGiveLikeFromUserToFilm() {
+        User user = new User(
+                "name",
+                "login",
+                "email@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+                user,
+                User.class
+        );
+        user.setId(1L);
+        Film usualFilm = new Film(
+                "Titanic2",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, usualFilm, Film.class);
+        usualFilm.setId(1L);
+        Film toBeLikedFilm = new Film(
+                "Titanic",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
+        toBeLikedFilm.setId(2L);
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(2, 1),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+        toBeLikedFilm = requestedFilms.get(1);
+        usualFilm = requestedFilms.get(0);
+        assertEquals(1, toBeLikedFilm.getLikedFilmIds().size());
+        assertTrue(toBeLikedFilm.getLikedFilmIds().contains(user.getId()));
+        assertTrue(usualFilm.getLikedFilmIds().isEmpty());
+    }
+
+    @Test
+    public void shouldReturn400IfFilmIdIsZeroWhenGivingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(0, 1),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfFilmIdIsNegativeWhenGivingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(-1, 1),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfUserIdIsZeroWhenGivingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, 0),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfUserIdIsNegativeWhenGivingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, -1),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturn404IfFilmIsAbsentWhenGivingLike() {
+        User user = new User(
+                "name",
+                "login",
+                "email@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+                user,
+                User.class
+        );
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, 1),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturn404IfUserIsAbsentWhenGivingLike() {
+        Film toBeLikedFilm = new Film(
+                "Titanic",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, 1),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+    }
+
+    // =============================== DELETE /films/{id}/like/{userId} ======================================
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldRemoveUserLikeFromFilm() {
+        User user = new User(
+                "name",
+                "login",
+                "email@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+                user,
+                User.class
+        );
+        user.setId(1L);
+        Film usualFilm = new Film(
+                "Titanic2",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, usualFilm, Film.class);
+        usualFilm.setId(1L);
+        Film toBeLikedFilm = new Film(
+                "Titanic",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
+        toBeLikedFilm.setId(2L);
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(2, 1),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(2, 1),
+                HttpMethod.DELETE,
+                null,
+                String.class
+        );
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+        toBeLikedFilm = requestedFilms.get(1);
+        assertTrue(toBeLikedFilm.getLikedFilmIds().isEmpty());
+    }
+
+    @Test
+    public void shouldReturn400IfFilmIdIsZeroWhenRemovingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(0, 1),
+                HttpMethod.DELETE,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfFilmIdIsNegativeWhenRemovingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(-1, 1),
+                HttpMethod.DELETE,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfUserIdIsZeroWhenRemovingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, 0),
+                HttpMethod.DELETE,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfUserIdIsNegativeWhenRemovingLike() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, -1),
+                HttpMethod.DELETE,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturn404IfFilmIsAbsentWhenRemovingLike() {
+        User user = new User(
+                "name",
+                "login",
+                "email@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+                user,
+                User.class
+        );
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, 1),
+                HttpMethod.DELETE,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturn404IfUserIsAbsentWhenRemovingLike() {
+        Film toBeLikedFilm = new Film(
+                "Titanic",
+                "Drama",
+                LocalDate.parse("1994-01-01", formatter),
+                120
+        );
+        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(1, 1),
+                HttpMethod.DELETE,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnPopularFilmsWithoutCountParameter() {
+        createContextWithPopularFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetPopularFilmsNoParameter(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        Film mostPopularFilm = requestedFilms.stream()
+                .max(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
+                .get();
+        Film leastPopularFilm = requestedFilms.stream()
+                .min(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
+                .get();
+        assertEquals(10, requestedFilms.size());
+        assertEquals(mostPopularFilm, requestedFilms.get(0));
+        assertEquals(leastPopularFilm, requestedFilms.get(9));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnPopularFilmsWithCountParameter() {
+        createContextWithPopularFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetPopularFilmsWithParameter(11),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        Film mostPopularFilm = requestedFilms.stream()
+                .max(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
+                .get();
+        Film leastPopularFilm = requestedFilms.stream()
+                .min(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
+                .get();
+        assertEquals(11, requestedFilms.size());
+        assertEquals(mostPopularFilm, requestedFilms.get(0));
+        assertEquals(leastPopularFilm, requestedFilms.get(10));
+    }
+
+    @Test
+    public void shouldReturn400IfCountIsZeroWhenGetPopularFilms() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetPopularFilmsWithParameter(0),
+                HttpMethod.GET,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn400IfCountIsNegativeWhenGetPopularFilms() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetPopularFilmsWithParameter(-1),
+                HttpMethod.GET,
+                null,
+                String.class
+        );
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
     }
 
 }

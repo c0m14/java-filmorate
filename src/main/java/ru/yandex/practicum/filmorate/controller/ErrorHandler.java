@@ -8,10 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
-import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
-import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
-import ru.yandex.practicum.filmorate.exception.UserNotExistException;
+import ru.yandex.practicum.filmorate.exception.*;
 
 import javax.validation.ConstraintViolationException;
 import java.util.List;
@@ -45,6 +42,13 @@ public class ErrorHandler {
     public ErrorResponse handleUserNotExistException(UserNotExistException e) {
         log.error(e.getMessage());
         return new ErrorResponse("userId", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleFilmNotExistException(FilmNotExistException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("filmId", e.getMessage());
     }
 
     @ExceptionHandler
