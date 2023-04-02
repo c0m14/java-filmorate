@@ -37,11 +37,10 @@ public class UserService {
     }
 
     public void addUserFriend(Long currentUserId, Long newFriendId) {
+        userFieldsValidator.checkIfPresentById(currentUserId);
+        userFieldsValidator.checkIfPresentById(newFriendId);
         User currentUser = getUserFromStorageById(currentUserId);
         User newFriend = getUserFromStorageById(newFriendId);
-
-        userFieldsValidator.checkUserFields(currentUser, RequestType.UPDATE);
-        userFieldsValidator.checkUserFields(newFriend, RequestType.UPDATE);
 
         currentUser.getFriends().add(newFriendId);
         newFriend.getFriends().add(currentUserId);
