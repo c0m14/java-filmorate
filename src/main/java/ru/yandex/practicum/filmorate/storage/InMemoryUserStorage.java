@@ -32,9 +32,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        if (users.get(user.getId()) == null) {
-            throw new UserNotExistException(String.format("User with id %d doesn't exist", user.getId()));
-        }
         users.put(user.getId(), user);
         return user;
     }

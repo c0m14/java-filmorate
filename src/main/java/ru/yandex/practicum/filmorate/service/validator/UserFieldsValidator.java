@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 @Service
 @Slf4j
 public class UserFieldsValidator {
-    private UserStorage userStorage;
+    private final UserStorage userStorage;
 
     public UserFieldsValidator(UserStorage userStorage) {
         this.userStorage = userStorage;
@@ -27,13 +27,12 @@ public class UserFieldsValidator {
     }
 
     private void checkIfPresent(User user) {
-        try {
-            userStorage.getUserById(user.getId());
-        } catch (NullPointerException e) {
+        if (userStorage.getUserById(user.getId()).isEmpty()) {
             throw new UserNotExistException(
                     String.format("User with id %d doesn't exist", user.getId())
             );
         }
+
     }
 
     private void checkUserId(Long id, RequestType requestType) {
