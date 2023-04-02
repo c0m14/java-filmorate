@@ -30,14 +30,14 @@ public class FilmControllerTest {
     @Autowired
     private TestRestTemplate testRestTemplate;
     @Value(value = "${local.server.port}")
-    private int PORT;
+    private int port;
     private URI filmsUrl;
 
     @BeforeEach
     public void beforeEach() {
         filmsUrl = URI.create(
                 HOST +
-                        PORT +
+                        port +
                         "/films"
         );
         applicationJsonHeaders = new HttpHeaders();
@@ -47,25 +47,25 @@ public class FilmControllerTest {
 
     private URI createGetFilmByIdUrl(int filmId) {
         return URI.create(
-                String.format("%s%s/films/%d", HOST, PORT, filmId)
+                String.format("%s%s/films/%d", HOST, port, filmId)
         );
     }
 
     private URI createGiveOrDeleteLikeUrl(int filmId, int userId) {
         return URI.create(
-                String.format("%s%s/films/%d/like/%d", HOST, PORT, filmId, userId)
+                String.format("%s%s/films/%d/like/%d", HOST, port, filmId, userId)
         );
     }
 
     private URI createGetPopularFilmsWithParameter(int count) {
         return URI.create(
-                String.format("%s%s/films/popular?count=%d", HOST, PORT, count)
+                String.format("%s%s/films/popular?count=%d", HOST, port, count)
         );
     }
 
     private URI createGetPopularFilmsNoParameter() {
         return URI.create(
-                String.format("%s%s/films/popular", HOST, PORT)
+                String.format("%s%s/films/popular", HOST, port)
         );
     }
 
@@ -83,7 +83,7 @@ public class FilmControllerTest {
                 120
         );
         for (int i = 0; i <= 10; i++) {
-            testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+            testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
                     user,
                     User.class);
             testRestTemplate.postForObject(filmsUrl, film, Film.class);
@@ -884,7 +884,7 @@ public class FilmControllerTest {
                 "email@domen.ru",
                 LocalDate.of(2000, 1, 1)
         );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
                 user,
                 User.class
         );
@@ -988,7 +988,7 @@ public class FilmControllerTest {
                 "email@domen.ru",
                 LocalDate.of(2000, 1, 1)
         );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
                 user,
                 User.class
         );
@@ -1035,7 +1035,7 @@ public class FilmControllerTest {
                 "email@domen.ru",
                 LocalDate.of(2000, 1, 1)
         );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
                 user,
                 User.class
         );
@@ -1142,7 +1142,7 @@ public class FilmControllerTest {
                 "email@domen.ru",
                 LocalDate.of(2000, 1, 1)
         );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, PORT)),
+        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
                 user,
                 User.class
         );

@@ -29,30 +29,30 @@ public class UserControllerTest {
     @Autowired
     private TestRestTemplate testRestTemplate;
     @Value(value = "${local.server.port}")
-    private int PORT;
+    private int port;
     private URI usersUrl;
 
     @BeforeEach
     public void beforeEach() {
-        usersUrl = URI.create(String.format("%s%s/users", HOST, PORT));
+        usersUrl = URI.create(String.format("%s%s/users", HOST, port));
         applicationJsonHeaders = new HttpHeaders();
         applicationJsonHeaders.setContentType(MediaType.APPLICATION_JSON);
     }
 
     private URI createGetUserByIdUrl(int id) {
-        return URI.create(String.format("%s%s/users/%d", HOST, PORT, id));
+        return URI.create(String.format("%s%s/users/%d", HOST, port, id));
     }
 
     private URI createAddOrDeleteUserFriendUrl(int currentUserId, int friendId) {
-        return URI.create(String.format("%s%s/users/%d/friends/%d", HOST, PORT, currentUserId, friendId));
+        return URI.create(String.format("%s%s/users/%d/friends/%d", HOST, port, currentUserId, friendId));
     }
 
     private URI createGetUserFriendsUrl(int id) {
-        return URI.create(String.format("%s%s/users/%d/friends", HOST, PORT, id));
+        return URI.create(String.format("%s%s/users/%d/friends", HOST, port, id));
     }
 
     private URI createGetCommonFriendsUrl(int userId, int comparedUserId) {
-        return URI.create(String.format("%s%s/users/%d/friends/common/%d", HOST, PORT, userId, comparedUserId));
+        return URI.create(String.format("%s%s/users/%d/friends/common/%d", HOST, port, userId, comparedUserId));
     }
 
     // =============================== POST /users ======================================
