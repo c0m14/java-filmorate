@@ -928,7 +928,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn400IfFilmIdIsZeroWhenGivingLike() {
+    public void shouldReturn404IfFilmIdIsZeroWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(0, 1),
@@ -937,11 +937,11 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfFilmIdIsNegativeWhenGivingLike() {
+    public void shouldReturn404IfFilmIdIsNegativeWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(-1, 1),
@@ -950,11 +950,11 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsZeroWhenGivingLike() {
+    public void shouldReturn404IfUserIdIsZeroWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(1, 0),
@@ -963,11 +963,11 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsNegativeWhenGivingLike() {
+    public void shouldReturn404IfUserIdIsNegativeWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(1, -1),
@@ -976,7 +976,7 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
@@ -1082,7 +1082,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void shouldReturn400IfFilmIdIsZeroWhenRemovingLike() {
+    public void shouldReturn404IfFilmIdIsZeroWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(0, 1),
@@ -1091,11 +1091,11 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfFilmIdIsNegativeWhenRemovingLike() {
+    public void shouldReturn404IfFilmIdIsNegativeWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(-1, 1),
@@ -1104,11 +1104,11 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsZeroWhenRemovingLike() {
+    public void shouldReturn404IfUserIdIsZeroWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(1, 0),
@@ -1117,11 +1117,11 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsNegativeWhenRemovingLike() {
+    public void shouldReturn404IfUserIdIsNegativeWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(1, -1),
@@ -1130,7 +1130,7 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test

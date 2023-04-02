@@ -996,7 +996,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsZeroWhenAddFriend() {
+    public void shouldReturn404IfUserIdIsZeroWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(0, 1),
@@ -1005,11 +1005,11 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsNegativeWhenAddFriend() {
+    public void shouldReturn404IfUserIdIsNegativeWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(-1, 1),
@@ -1018,11 +1018,11 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfFriendIdIsZeroWhenAddFriend() {
+    public void shouldReturn404IfFriendIdIsZeroWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(1, 0),
@@ -1031,11 +1031,11 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfFriendIdIsNegativeWhenAddFriend() {
+    public void shouldReturn404IfFriendIdIsNegativeWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(1, -1),
@@ -1044,7 +1044,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
@@ -1097,7 +1097,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsZeroWhenDeleteFriend() {
+    public void shouldReturn404IfUserIdIsZeroWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(0, 1),
@@ -1106,11 +1106,11 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfUserIdIsNegativeWhenDeleteFriend() {
+    public void shouldReturn404IfUserIdIsNegativeWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(-1, 1),
@@ -1119,11 +1119,11 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfFriendIdIsZeroWhenDeleteFriend() {
+    public void shouldReturn404IfFriendIdIsZeroWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(1, 0),
@@ -1132,11 +1132,11 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test
-    public void shouldReturn400IfFriendIdIsNegativeWhenDeleteFriend() {
+    public void shouldReturn404IfFriendIdIsNegativeWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
                 createAddOrDeleteUserFriendUrl(1, -1),
@@ -1145,7 +1145,7 @@ public class UserControllerTest {
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
     }
 
     @Test

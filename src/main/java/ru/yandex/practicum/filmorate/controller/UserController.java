@@ -51,8 +51,8 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public void addUserFriend(
             @Valid
-            @PathVariable("id") @Min(1) Long userId,
-            @PathVariable("friendId") @Min(1) Long friendId
+            @PathVariable("id") Long userId,
+            @PathVariable("friendId") Long friendId
     ) {
         log.debug("Got request to add friend with id: {} to user with id: {}", friendId, userId);
         userService.addUserFriend(userId, friendId);
@@ -61,8 +61,8 @@ public class UserController {
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriendFromUser(
             @Valid
-            @PathVariable("id") @Min(1) Long userId,
-            @PathVariable("friendId") @Min(1) Long friendId
+            @PathVariable("id") Long userId,
+            @PathVariable("friendId") Long friendId
     ) {
         log.debug("Got request to delete friend with id: {} from user with id: {}", friendId, userId);
         userService.removeUserFriend(userId, friendId);
