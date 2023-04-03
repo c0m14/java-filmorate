@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.RequestType;
@@ -13,14 +14,10 @@ import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
     private final UserFieldsValidator userFieldsValidator;
-
-    public UserService(UserStorage userStorage, UserFieldsValidator userFieldsValidator) {
-        this.userStorage = userStorage;
-        this.userFieldsValidator = userFieldsValidator;
-    }
 
     public User addUser(User user) {
         userFieldsValidator.checkUserFields(user, RequestType.CREATE);

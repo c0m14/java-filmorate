@@ -8,13 +8,8 @@ import java.util.*;
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
-    private final Map<Long, User> users;
-    private Long idCounter;
-
-    public InMemoryUserStorage() {
-        users = new HashMap<>();
-        idCounter = 1L;
-    }
+    private final Map<Long, User> users = new HashMap<>();
+    private Long idCounter = 1L;
 
     private void setIdCount(User user) {
         user.setId(idCounter);

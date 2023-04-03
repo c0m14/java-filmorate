@@ -9,13 +9,8 @@ import java.util.*;
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private final Map<Long, Film> films;
-    private Long idCounter;
-
-    public InMemoryFilmStorage() {
-        films = new HashMap<>();
-        idCounter = 1L;
-    }
+    private final Map<Long, Film> films = new HashMap<>();
+    private Long idCounter = 1L;
 
     private void setIdCount(Film film) {
         film.setId(idCounter);

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service.validator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
@@ -10,12 +11,9 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserFieldsValidator {
     private final UserStorage userStorage;
-
-    public UserFieldsValidator(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
 
     public void checkUserFields(User user, RequestType requestType) throws InvalidUserFieldsException {
         checkUserId(user.getId(), requestType);

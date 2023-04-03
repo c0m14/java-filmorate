@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,24 +14,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FilmService {
 
     private final FilmStorage filmStorage;
     private final FilmFieldsValidator filmFieldsValidator;
     private final UserFieldsValidator userFieldsValidator;
     private final UserService userService;
-
-    public FilmService(
-            FilmStorage filmStorage,
-            FilmFieldsValidator filmFieldsValidator,
-            UserFieldsValidator userFieldsValidator,
-            UserService userService
-    ) {
-        this.filmStorage = filmStorage;
-        this.filmFieldsValidator = filmFieldsValidator;
-        this.userFieldsValidator = userFieldsValidator;
-        this.userService = userService;
-    }
 
     public Film addFilm(Film film) {
         filmFieldsValidator.checkRequestFilm(film, RequestType.CREATE);

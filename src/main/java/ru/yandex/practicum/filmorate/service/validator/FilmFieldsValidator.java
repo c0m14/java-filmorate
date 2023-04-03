@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service.validator;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
@@ -11,15 +12,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Service
+@RequiredArgsConstructor
 public class FilmFieldsValidator {
 
     private final FilmStorage filmStorage;
-    private final DateTimeFormatter formatter;
-
-    public FilmFieldsValidator(FilmStorage filmStorage) {
-        this.filmStorage = filmStorage;
-        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    }
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");;
 
     public void checkRequestFilm(Film film, RequestType requestType) throws InvalidFilmFieldsException {
         checkFilmId(film.getId(), requestType);
