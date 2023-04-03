@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.service.validator.UserFieldsValidator;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,7 +19,6 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final FilmFieldsValidator filmFieldsValidator;
     private final UserFieldsValidator userFieldsValidator;
-    private final UserService userService;
 
     public Film addFilm(Film film) {
         filmFieldsValidator.checkRequestFilm(film, RequestType.CREATE);
@@ -37,11 +35,9 @@ public class FilmService {
     }
 
     public Film getFilmFromStorageById(Long filmId) {
-        Optional<Film> optionalFilm = filmStorage.getFilmById(filmId);
-        if (optionalFilm.isEmpty()) {
-            throw new FilmNotExistException(String.format("Film with id %d doesn't exist", filmId));
-        }
-        return optionalFilm.get();
+        return filmStorage.getFilmById(filmId).orElseThrow(
+                () -> new FilmNotExistException(String.format("Film with id %d doesn't exist", filmId))
+        );
     }
 
     public void giveLikeFromUserToFilm(Long filmId, Long userId) {

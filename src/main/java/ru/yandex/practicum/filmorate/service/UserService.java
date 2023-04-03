@@ -73,13 +73,9 @@ public class UserService {
     }
 
     public User getUserFromStorageById(Long userId) {
-        Optional<User> requestedUser = userStorage.getUserById(userId);
-        if (requestedUser.isEmpty()) {
-            throw new UserNotExistException(
-                    String.format("User with id %d doesn't exist", userId)
-            );
-        }
-        return requestedUser.get();
+        return userStorage.getUserById(userId).orElseThrow(
+                () -> new UserNotExistException(String.format("User with id %d doesn't exist", userId))
+        );
     }
 
 }
