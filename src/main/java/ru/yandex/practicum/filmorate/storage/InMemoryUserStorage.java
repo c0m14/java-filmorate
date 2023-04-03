@@ -16,8 +16,7 @@ public class InMemoryUserStorage implements UserStorage {
         idCounter = 1L;
     }
 
-    @Override
-    public void setIdCount(User user) {
+    private void setIdCount(User user) {
         user.setId(idCounter);
         idCounter++;
     }

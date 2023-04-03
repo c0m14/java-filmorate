@@ -7,8 +7,6 @@ import java.util.Optional;
 
 public interface FilmStorage {
 
-    void setIdCount(Film film);
-
     Film addFilm(Film film);
 
     Film updateFilm(Film film);

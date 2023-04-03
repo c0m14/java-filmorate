@@ -17,8 +17,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         idCounter = 1L;
     }
 
-    @Override
-    public void setIdCount(Film film) {
+    private void setIdCount(Film film) {
         film.setId(idCounter);
         idCounter++;
     }
