@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 public class FilmFieldsValidator {
 
     private final FilmStorage filmStorage;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public void checkRequestFilm(Film film, RequestType requestType) throws InvalidFilmFieldsException {
         checkFilmId(film.getId(), requestType);
