@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class InvalidFilmFieldsException extends RuntimeException {
-    public InvalidFilmFieldsException(String message) {
-        super(message);
+public class InvalidFilmFieldsException extends InvalidFieldsException {
+    public InvalidFilmFieldsException(String fieldName, String message) {
+        super(fieldName, message);
     }
 }
