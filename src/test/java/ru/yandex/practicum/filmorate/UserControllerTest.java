@@ -9,16 +9,17 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.yandex.practicum.filmorate.model.FriendConfirmationStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserControllerTest {
@@ -991,8 +992,8 @@ public class UserControllerTest {
                 createGetUserByIdUrl(2),
                 User.class
         );
-        assertTrue(currentUser.getFriends().contains(friend.getId()));
-        assertTrue(friend.getFriends().contains(currentUser.getId()));
+        assertTrue(currentUser.getFriends().containsKey(friend.getId()));
+        assertTrue(friend.getFriends().containsKey(currentUser.getId()));
     }
 
     @Test
@@ -1093,7 +1094,59 @@ public class UserControllerTest {
                 "email@domen.ru",
                 LocalDate.of(2000, 1, 1)
         );
-        currentUser.setFriends(Set.of(2L));
+        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
+        User friend = new User(
+                "friend",
+                "login2",
+                "email2@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        testRestTemplate.postForObject(usersUrl, friend, User.class);
+        User friend2 = new User(
+                "friend2",
+                "login2",
+                "email2@domen.ru",
+                LocalDate.of(2000, 1, 1)
+        );
+        testRestTemplate.postForObject(usersUrl, friend2, User.class);
+        testRestTemplate.exchange(
+                createAddOrDeleteUserFriendUrl(1, 2),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+        testRestTemplate.exchange(
+                createAddOrDeleteUserFriendUrl(1, 3),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        testRestTemplate.exchange(
+                createAddOrDeleteUserFriendUrl(1, 2),
+                HttpMethod.DELETE,
+                null,
+                User.class
+        );
+
+        List<User> currentUserFriends = testRestTemplate.exchange(
+                createGetUserFriendsUrl(1),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<User>>() {
+                }
+        ).getBody();
+        friend = testRestTemplate.getForObject(
+                createGetUserByIdUrl(2),
+                User.class
+        );
+        friend2 = testRestTemplate.getForObject(
+                createGetUserByIdUrl(3),
+                User.class
+        );
+        assertEquals(1, currentUserFriends.size());
+        assertTrue(currentUserFriends.contains(friend2));
+        assertFalse(currentUserFriends.contains(friend));
     }
 
     @Test
