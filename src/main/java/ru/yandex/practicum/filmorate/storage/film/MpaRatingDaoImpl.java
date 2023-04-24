@@ -32,11 +32,8 @@ public class MpaRatingDaoImpl implements MpaRatingDao {
 
         return new RatingMPA(
                 mpaId,
-                Enum.valueOf(
-                        RatingMPA.RatingMPAName.class,
-                        mpaName.orElseThrow(() -> new WrongMpaRatingException(
-                                String.format("There is no Mpa Rating for id: %n", mpaId))
-                        )
+                mpaName.orElseThrow(() -> new WrongMpaRatingException(
+                        String.format("There is no Mpa Rating for id: %n", mpaId))
                 )
         );
     }

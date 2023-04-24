@@ -7,13 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class RatingMPA {
     private int id;
-    private RatingMPAName name;
-
-   public enum RatingMPAName {
-        G,
-        PG,
-        PG13,
-        R,
-        NC17
-    }
+    private String name;
 }
