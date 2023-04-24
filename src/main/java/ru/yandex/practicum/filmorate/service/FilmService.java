@@ -1,13 +1,14 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.service.validator.FilmFieldsValidator;
 import ru.yandex.practicum.filmorate.service.validator.UserFieldsValidator;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FilmService {
 
+    @Qualifier("DatabaseFilmStorage")
     private final FilmStorage filmStorage;
     private final FilmFieldsValidator filmFieldsValidator;
     private final UserFieldsValidator userFieldsValidator;
