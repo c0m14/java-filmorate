@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
@@ -69,6 +70,9 @@ public class FilmRepository implements FilmStorage {
         //Конструируем фильм с базовыми полями
         Optional<Film> filmOptional = getFilmByIdLite(filmId);
 
+        //Добавляем имя для MPA Rating
+        filmOptional.ifPresent(film -> film.setMpa(ratingMpaDao.getMpaByIdFromDb(film.getMpa().getId())));
+
         //Добавляем жанры
         filmOptional.ifPresent(film -> film.setGenres(filmGenreDao.getGenresToFilm(filmId)));
 
@@ -78,6 +82,7 @@ public class FilmRepository implements FilmStorage {
         return filmOptional;
     }
 
+    //Возвращает фильм с базовыми полями из таблицы film
     public Optional<Film> getFilmByIdLite(Long filmId) {
         String getFilmSqlQuery = "SELECT * FROM film " +
                 "WHERE film_id = :filmId";
@@ -85,7 +90,6 @@ public class FilmRepository implements FilmStorage {
                 .addValue("filmId", filmId);
 
         Optional<Film> filmOptional;
-        //Конструируем фильм с базовыми полями
         try {
             filmOptional = Optional.ofNullable(
                     jdbcTemplate.queryForObject(getFilmSqlQuery, namedParam, this::mapRowToFilm)
@@ -104,7 +108,10 @@ public class FilmRepository implements FilmStorage {
                 .description(resultSet.getString("description"))
                 .releaseDate(resultSet.getDate("release_date").toLocalDate())
                 .duration(resultSet.getInt("duration"))
-                .mpa(ratingMpaDao.getMpaByIdFromDb(resultSet.getInt("mpa_rating_id")))
+                .mpa(RatingMPA.builder()
+                        .id(resultSet.getInt("mpa_rating_id"))
+                        .build()
+                )
                 .build();
     }
 }
