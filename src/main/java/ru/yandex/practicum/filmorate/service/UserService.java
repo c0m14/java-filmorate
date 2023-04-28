@@ -3,10 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
+import ru.yandex.practicum.filmorate.model.FriendConfirmationStatus;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.validator.UserFieldsValidator;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,8 +38,8 @@ public class UserService {
         User currentUser = getUserFromStorageById(currentUserId);
         User newFriend = getUserFromStorageById(newFriendId);
 
-        currentUser.getFriends().add(newFriendId);
-        newFriend.getFriends().add(currentUserId);
+        currentUser.getFriends().put(newFriendId, FriendConfirmationStatus.WAITING_FOR_APPROVAL);
+        newFriend.getFriends().put(currentUserId, FriendConfirmationStatus.WAITING_FOR_APPROVAL);
     }
 
     public void removeUserFriend(Long currentUserId, Long friendId) {
@@ -51,7 +52,7 @@ public class UserService {
 
     public List<User> getFriendsForUser(Long currentUserId) {
         User currentUser = getUserFromStorageById(currentUserId);
-        return currentUser.getFriends().stream()
+        return currentUser.getFriends().keySet().stream()
                 .map(userStorage::getUserById)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -62,8 +63,8 @@ public class UserService {
         User currentUser = getUserFromStorageById(currentUserId);
         User comparedUser = getUserFromStorageById(comparedUserId);
 
-        return currentUser.getFriends().stream()
-                .filter(id -> comparedUser.getFriends().contains(id))
+        return currentUser.getFriends().keySet().stream()
+                .filter(id -> comparedUser.getFriends().containsKey(id))
                 .map(userStorage::getUserById)
                 .filter(Optional::isPresent)
                 .map(Optional::get)

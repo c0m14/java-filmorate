@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RequestType;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class FilmFieldsValidator {
 
-    @Qualifier("DatabaseFilmStorage")
+    @Qualifier("H2FilmRepository")
     private final FilmStorage filmStorage;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -29,7 +29,7 @@ public class FilmFieldsValidator {
     }
 
     public void checkIfPresent(Film film) {
-        if (filmStorage.getFilmById(film.getId()).isEmpty()) {
+        if (filmStorage.getFilmByIdFull(film.getId()).isEmpty()) {
             throw new UserNotExistException(
                     String.format("Film with id %d doesn't exist", film.getId())
             );
@@ -37,7 +37,7 @@ public class FilmFieldsValidator {
     }
 
     public void checkIfPresentById(Long filmId) {
-        if (filmStorage.getFilmById(filmId).isEmpty()) {
+        if (filmStorage.getFilmByIdFull(filmId).isEmpty()) {
             throw new UserNotExistException(
                     String.format("Film with id %d doesn't exist", filmId)
             );

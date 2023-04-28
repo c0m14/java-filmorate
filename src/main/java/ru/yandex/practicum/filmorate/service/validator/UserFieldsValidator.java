@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 
 @Service
 @Slf4j

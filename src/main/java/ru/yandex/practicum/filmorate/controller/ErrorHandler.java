@@ -53,6 +53,20 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleFilmGenreNotExistException(GenreNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("genres", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleFilmMpaRatingNotExistException(MpaRatingNotExistException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("mpa", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseList handleConstraintViolationException(ConstraintViolationException e) {
         log.error(e.getMessage());
         return new ErrorResponseList(

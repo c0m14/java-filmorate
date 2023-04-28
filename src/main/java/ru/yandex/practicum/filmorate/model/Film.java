@@ -31,8 +31,8 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
-    private Set<Long> likedFilmIds = new HashSet<>();
-    private Set<Long> genres = new HashSet<>();
+    private Long likesCount = 0L;
+    private Set<Genre> genres = new HashSet<>();
     @NotNull
     private RatingMPA mpa;
 
@@ -58,11 +58,11 @@ public class Film {
     public Map<String, Object> mapToDb() {
         Map<String, Object> filmValues = new HashMap<>();
 
-        filmValues.put("FILM_NAME", name);
-        filmValues.put("DESCRIPTION", description);
-        filmValues.put("RELEASE_DATE", releaseDate);
-        filmValues.put("DURATION", duration);
-        filmValues.put("MPA_RATING_ID", mpa.getId());
+        //Определяем маппинг только для полей, чьи проверки не зависят от БД
+        filmValues.put("film_name", name);
+        filmValues.put("description", description);
+        filmValues.put("release_date", releaseDate);
+        filmValues.put("duration", duration);
 
         return filmValues;
     }
