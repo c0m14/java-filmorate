@@ -22,13 +22,13 @@ import java.util.Set;
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     public void setGenreToFilm(Long filmId, int genreId) {
-        String upsertFilmGenreQuery ="MERGE INTO film_genre " +
+        String sqlQuery ="MERGE INTO film_genre " +
                 "VALUES ( :filmId, :genreId)";
         SqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("filmId", filmId)
                 .addValue("genreId", genreId);
         try {
-            jdbcTemplate.update(upsertFilmGenreQuery, namedParams);
+            jdbcTemplate.update(sqlQuery, namedParams);
         } catch (DataIntegrityViolationException e) {
             throw new GenreNotExistsException(
                  String.format("Genre with id %d doesn't exist", genreId)
@@ -38,14 +38,14 @@ import java.util.Set;
     }
 
     public Set<Genre> getGenresToFilm(Long filmId) {
-        String findGenresToFilmQuery = "SELECT genre_id, genre_name " +
+        String sqlQuery = "SELECT genre_id, genre_name " +
                 "FROM genre " +
                 "WHERE genre_id IN " +
                 "(SELECT genre_id " +
                 "FROM film_genre " +
                 "WHERE film_id = :filmId)";
         MapSqlParameterSource namedParams = new MapSqlParameterSource("filmId", filmId);
-        List<Genre> filmGenres = jdbcTemplate.query(findGenresToFilmQuery, namedParams, this::MapRowToGenre);
+        List<Genre> filmGenres = jdbcTemplate.query(sqlQuery, namedParams, this::MapRowToGenre);
 
         return filmGenres.isEmpty() ? new HashSet<>() : new HashSet<>(filmGenres);
     }

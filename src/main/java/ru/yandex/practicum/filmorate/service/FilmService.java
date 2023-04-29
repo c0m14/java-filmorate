@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,33 +42,21 @@ public class FilmService {
         );
     }
 
-    // TODO
     public void giveLikeFromUserToFilm(Long filmId, Long userId) {
         userFieldsValidator.checkIfPresentById(userId);
         filmFieldsValidator.checkIfPresentById(filmId);
 
-        filmStorage.getFilmByIdFull(filmId)
-                .get()
-                .getLikesCount();
-                //.add(userId);
+        filmStorage.giveLikeFromUserToFilm(filmId, userId);
     }
 
-    //TODO
     public void removeUserLikeFromFilm(Long filmId, Long userId) {
         filmFieldsValidator.checkIfPresentById(filmId);
         userFieldsValidator.checkIfPresentById(userId);
 
-        filmStorage.getFilmByIdFull(filmId)
-                .get()
-                .getLikesCount();
-                //.remove(userId);
+        filmStorage.removeUserLikeFromFilm(filmId, userId);
     }
 
-    //TODO
     public List<Film> getPopularFilms(int count) {
-        return  null; /*filmStorage.getAllFilms().stream()
-                .sorted((film1, film2) -> film2.getLikesCount().size() - film1.getLikesCount().size())
-                .limit(count)
-                .collect(Collectors.toList());*/
+        return filmStorage.getPopularFilms(count);
     }
 }

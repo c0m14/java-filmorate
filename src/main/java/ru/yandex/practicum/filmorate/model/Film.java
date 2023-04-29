@@ -31,7 +31,9 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
+    @Builder.Default
     private Long likesCount = 0L;
+    @Builder.Default
     private Set<Genre> genres = new HashSet<>();
     @NotNull
     private RatingMPA mpa;

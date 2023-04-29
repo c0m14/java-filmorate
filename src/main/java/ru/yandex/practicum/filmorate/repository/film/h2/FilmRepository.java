@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +46,7 @@ public class FilmRepository implements FilmStorage {
             ratingMpaDao.setRatingMpaToFilm(filmId, film.getMpa().getId());
         }
 
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+        if (!film.getGenres().isEmpty()) {
             film.getGenres().stream()
                     .mapToInt(Genre::getId)
                     .forEach(genreId -> filmGenreDao.setGenreToFilm(filmId, genreId));
@@ -56,13 +57,43 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
+    @Transactional
     public Film updateFilm(Film film) {
-        return null;
+        String sqlQuery = "UPDATE film " +
+                "SET film_name = :filmName, description = :description, release_date = :releaseDate, " +
+                "duration = :duration " +
+                "WHERE film_id = :filmId";
+        SqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("filmName", film.getName())
+                .addValue("description", film.getDescription())
+                .addValue("releaseDate", film.getReleaseDate())
+                .addValue("duration", film.getDuration())
+                .addValue("mpaRatingId", film.getMpa().getId())
+                .addValue("filmId", film.getId());
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+
+        if (film.getMpa() != null) {
+            ratingMpaDao.setRatingMpaToFilm(film.getId(), film.getMpa().getId());
+        }
+
+        if (!film.getGenres().isEmpty()) {
+            film.getGenres().stream()
+                    .mapToInt(Genre::getId)
+                    .forEach(genreId -> filmGenreDao.setGenreToFilm(film.getId(), genreId));
+        }
+
+        return film;
     }
 
     @Override
     public List<Film> getAllFilms() {
-        return null;
+        String sqlQuery = "SELECT film_id, film_name, description, release_date, duration, mpa_rating_id " +
+                "FROM film ";
+
+       List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
+       films.forEach(this::fetchAdditionalParams);
+       return films;
     }
 
     @Override
@@ -70,29 +101,74 @@ public class FilmRepository implements FilmStorage {
         //Конструируем фильм с базовыми полями
         Optional<Film> filmOptional = getFilmByIdLite(filmId);
 
-        //Добавляем имя для MPA Rating
-        filmOptional.ifPresent(film -> film.setMpa(ratingMpaDao.getMpaByIdFromDb(film.getMpa().getId())));
-
-        //Добавляем жанры
-        filmOptional.ifPresent(film -> film.setGenres(filmGenreDao.getGenresToFilm(filmId)));
-
-        //Добавляем лайки
-        filmOptional.ifPresent(film -> film.setLikesCount(filmLikesDao.getFilmLikes(filmId)));
+        //Добавляем дополнительные параметры
+        filmOptional.ifPresent(this::fetchAdditionalParams);
 
         return filmOptional;
     }
 
+    @Override
+    public void giveLikeFromUserToFilm(Long filmId, Long userId) {
+        filmLikesDao.setFilmLike(filmId, userId);
+    }
+
+    @Override
+    public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
+        return filmLikesDao.removeFilmLike(filmId, userId);
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id " +
+                "FROM film AS f " +
+                "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
+                "GROUP BY f.film_id " +
+                "ORDER BY SUM(likes.user_id) DESC " +
+                "LIMIT :count";
+        SqlParameterSource namedParam = new MapSqlParameterSource("count", count);
+        List<Film> films = new ArrayList<>(count);
+
+        try {
+            films = jdbcTemplate.query(sqlQuery, namedParam, this::mapRowToFilm);
+        } catch (EmptyResultDataAccessException e) {
+            return films;
+        }
+
+        films.forEach(this::fetchAdditionalParams);
+        return films;
+
+    }
+
+    private void fetchAdditionalParams (Film film) {
+        fetchRatingMpa(film);
+        fetchGenres(film);
+        fetchLikes(film);
+    }
+
+    private void fetchRatingMpa(Film film) {
+        film.setMpa(ratingMpaDao.getMpaByIdFromDb(film.getMpa().getId()));
+    }
+
+    private void fetchGenres(Film film) {
+        film.setGenres(filmGenreDao.getGenresToFilm(film.getId()));
+    }
+
+    private void fetchLikes(Film film) {
+        film.setLikesCount(filmLikesDao.getFilmLikes(film.getId()));
+    }
+
     //Возвращает фильм с базовыми полями из таблицы film
     public Optional<Film> getFilmByIdLite(Long filmId) {
-        String getFilmSqlQuery = "SELECT * FROM film " +
+        String sqlQuery = "SELECT film_id, film_name, description, release_date, duration, mpa_rating_id " +
+                "FROM film " +
                 "WHERE film_id = :filmId";
-        SqlParameterSource namedParam = new MapSqlParameterSource()
-                .addValue("filmId", filmId);
+        SqlParameterSource namedParam = new MapSqlParameterSource("filmId", filmId);
 
         Optional<Film> filmOptional;
         try {
             filmOptional = Optional.ofNullable(
-                    jdbcTemplate.queryForObject(getFilmSqlQuery, namedParam, this::mapRowToFilm)
+                    jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToFilm)
             );
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();

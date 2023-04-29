@@ -14,5 +14,11 @@ public interface FilmStorage {
     List<Film> getAllFilms();
 
     Optional<Film> getFilmByIdFull(Long filmId);
+
+    void giveLikeFromUserToFilm(Long filmId, Long userId);
+
+    boolean removeUserLikeFromFilm(Long filmId, Long userId);
+
+    List<Film> getPopularFilms(int count);
 }
 
