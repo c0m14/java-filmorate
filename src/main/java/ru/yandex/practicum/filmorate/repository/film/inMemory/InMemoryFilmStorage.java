@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.repository.film.inMemory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.util.*;
@@ -39,5 +40,30 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Optional<Film> getFilmByIdFull(Long filmId) {
         return Optional.ofNullable(films.get(filmId));
+    }
+
+    @Override
+    public void giveLikeFromUserToFilm(Long filmId, Long userId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RatingMPA getMpaById(int mapId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<RatingMPA> getAllMpa() {
+        throw new UnsupportedOperationException();
     }
 }

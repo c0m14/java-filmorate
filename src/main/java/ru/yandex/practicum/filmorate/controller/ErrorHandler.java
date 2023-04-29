@@ -59,7 +59,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleFilmMpaRatingNotExistException(MpaRatingNotExistException e) {
         log.error(e.getMessage());
         return new ErrorResponse("mpa", e.getMessage());

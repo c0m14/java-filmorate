@@ -140,6 +140,16 @@ public class FilmRepository implements FilmStorage {
 
     }
 
+    @Override
+    public RatingMPA getMpaById(int mapId) {
+        return ratingMpaDao.getMpaByIdFromDb(mapId);
+    }
+
+    @Override
+    public List<RatingMPA> getAllMpa() {
+        return ratingMpaDao.getAllMpa();
+    }
+
     private void fetchAdditionalParams (Film film) {
         fetchRatingMpa(film);
         fetchGenres(film);

@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.repository.film.h2;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -10,11 +10,13 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.MpaRatingNotExistException;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 
-import java.util.Optional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
- class RatingMpaDao {
+class RatingMpaDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -23,20 +25,18 @@ import java.util.Optional;
             return null;
         }
 
-        String sqlQuery = "SELECT mpa_rating_name FROM mpa_rating " +
+        String sqlQuery = "SELECT mpa_rating_id, mpa_rating_name FROM mpa_rating " +
                 "WHERE mpa_rating_id = :mpaRatingId";
         SqlParameterSource namedParam = new MapSqlParameterSource("mpaRatingId", mpaId);
+        RatingMPA ratingMPA;
 
-        Optional<String> mpaName = Optional.ofNullable(
-                jdbcTemplate.queryForObject(sqlQuery, namedParam, String.class)
-        );
+        try {
+            ratingMPA = jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToMpa);
+        } catch (EmptyResultDataAccessException e) {
+            throw new MpaRatingNotExistException(String.format("Mpa rating with id %d doesn't exist", mpaId));
+        }
 
-        return new RatingMPA(
-                mpaId,
-                mpaName.orElseThrow(() -> new MpaRatingNotExistException(
-                        String.format("There is no Mpa Rating for id: %n", mpaId))
-                )
-        );
+        return ratingMPA;
     }
 
     public void setRatingMpaToFilm(Long filmId, int ratingMpaId) {
@@ -54,5 +54,19 @@ import java.util.Optional;
                     String.format("Mpa rating with id %d doesn't exist", ratingMpaId)
             );
         }
+    }
+
+    public List<RatingMPA> getAllMpa() {
+        String sqlQuery = "SELECT mpa_rating_id, mpa_rating_name " +
+                "FROM mpa_rating";
+
+        return jdbcTemplate.query(sqlQuery, this::mapRowToMpa);
+    }
+
+    private RatingMPA mapRowToMpa(ResultSet resultSet, int rowNum) throws SQLException {
+        return new RatingMPA(
+                resultSet.getInt("mpa_rating_id"),
+                resultSet.getString("mpa_rating_name")
+        );
     }
 }
