@@ -52,7 +52,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleFilmGenreNotExistException(GenreNotExistsException e) {
         log.error(e.getMessage());
         return new ErrorResponse("genres", e.getMessage());

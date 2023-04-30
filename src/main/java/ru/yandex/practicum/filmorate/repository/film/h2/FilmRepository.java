@@ -77,6 +77,7 @@ public class FilmRepository implements FilmStorage {
             ratingMpaDao.setRatingMpaToFilm(film.getId(), film.getMpa().getId());
         }
 
+        filmGenreDao.clearGenresFromFilm(film.getId());
         if (!film.getGenres().isEmpty()) {
             film.getGenres().stream()
                     .mapToInt(Genre::getId)
@@ -91,9 +92,9 @@ public class FilmRepository implements FilmStorage {
         String sqlQuery = "SELECT film_id, film_name, description, release_date, duration, mpa_rating_id " +
                 "FROM film ";
 
-       List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
-       films.forEach(this::fetchAdditionalParams);
-       return films;
+        List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
+        films.forEach(this::fetchAdditionalParams);
+        return films;
     }
 
     @Override
@@ -150,7 +151,17 @@ public class FilmRepository implements FilmStorage {
         return ratingMpaDao.getAllMpa();
     }
 
-    private void fetchAdditionalParams (Film film) {
+    @Override
+    public Genre getGenreById(int id) {
+        return filmGenreDao.getGenreById(id);
+    }
+
+    @Override
+    public List<Genre> getAllGenres() {
+        return filmGenreDao.getAllGenres();
+    }
+
+    private void fetchAdditionalParams(Film film) {
         fetchRatingMpa(film);
         fetchGenres(film);
         fetchLikes(film);
