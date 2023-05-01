@@ -26,7 +26,6 @@ public class User {
     @NotNull
     @Past
     private LocalDate birthday;
-    private Map<Long, FriendConfirmationStatus> friends = new HashMap<>();
 
     public User(
             String login,
@@ -37,5 +36,15 @@ public class User {
         this.login = login;
         this.name = name;
         this.birthday = birthday;
+    }
+
+    public Map<String, Object> mapToDb() {
+        Map<String, Object> userValues = new HashMap<>();
+        userValues.put("user_name", name);
+        userValues.put("login", login);
+        userValues.put("email", email);
+        userValues.put("birthday", birthday);
+
+        return userValues;
     }
 }
