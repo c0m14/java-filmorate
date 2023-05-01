@@ -152,13 +152,15 @@ public class UserRepository implements UserStorage {
 
     @Override
     public boolean removeFriendFromUser(Long userId, Long friendId) {
+        //Если друг не добавлял пользователя в друзья (статус WAITING_FOR_APPROVAL)
         String deleteBothRecordsSqlQuery = "DELETE FROM user_friend " +
                 "WHERE (user_id = :userId AND friend_id = :friendId)" +
                 "OR " +
                 "(user_id = :friendId AND friend_id = :userId)";
+        //Если друг добавил пользователя в друзья (статус CONFIRMED)
         String changeFriendStatusForPending = "UPDATE user_friend " +
                 "SET confirmation_status = :pending " +
-                "WHERE user_id = :userId AND friend_id= ::friendId";
+                "WHERE user_id = :userId AND friend_id= :friendId";
         SqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("friendId", friendId)
