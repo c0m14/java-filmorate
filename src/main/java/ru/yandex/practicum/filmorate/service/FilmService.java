@@ -20,6 +20,7 @@ public class FilmService {
 
     @Qualifier("H2FilmRepository")
     private final FilmStorage filmStorage;
+
     private final FilmFieldsValidator filmFieldsValidator;
     private final UserFieldsValidator userFieldsValidator;
 
