@@ -75,6 +75,7 @@ public class TestDataProducer {
     public Film getFilmWithGenres() {
         return filmWithGenres;
     }
+
     public Film getFilmWithWrongGenres() {
         return filmWithWrongGenres;
     }
@@ -113,7 +114,8 @@ public class TestDataProducer {
     public Long addDefaultUserToDB() {
         return userStorage.addUser(getDefaultMutableUser()).getId();
     }
-    public Long addDefaultFilmToDB(){
+
+    public Long addDefaultFilmToDB() {
         return filmStorage.addFilm(getMutableFilm()).getId();
     }
 
@@ -128,7 +130,7 @@ public class TestDataProducer {
             for (Long usersId : usersIds) {
                 filmStorage.giveLikeFromUserToFilm(filmsId, usersId);
             }
-            usersIds.remove(usersIds.size()-1);
+            usersIds.remove(usersIds.size() - 1);
         }
     }
 }
