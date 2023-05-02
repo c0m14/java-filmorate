@@ -58,7 +58,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public boolean removeFriendFromUser(Long userId, Long friend_id) {
+    public boolean removeFriendFromUser(Long userId, Long friendId) {
         throw  new UnsupportedOperationException();
     }
 }
