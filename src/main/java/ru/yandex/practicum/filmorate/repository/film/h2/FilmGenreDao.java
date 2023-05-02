@@ -55,7 +55,7 @@ class FilmGenreDao {
                 "FROM film_genre " +
                 "WHERE film_id = :filmId)";
         MapSqlParameterSource namedParams = new MapSqlParameterSource("filmId", filmId);
-        List<Genre> filmGenres = jdbcTemplate.query(sqlQuery, namedParams, this::MapRowToGenre);
+        List<Genre> filmGenres = jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToGenre);
 
         return filmGenres.isEmpty() ? new HashSet<>() : new HashSet<>(filmGenres);
     }
@@ -68,7 +68,7 @@ class FilmGenreDao {
         Genre genre;
 
         try {
-            genre = jdbcTemplate.queryForObject(sqlQuery, namedParam, this::MapRowToGenre);
+            genre = jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToGenre);
         } catch (EmptyResultDataAccessException e) {
             throw new GenreNotExistsException(
                     String.format("Genre with id %d doesn't exist", id)
@@ -82,10 +82,10 @@ class FilmGenreDao {
         String sqlQuery = "SELECT genre_id, genre_name " +
                 "FROM genre";
 
-        return jdbcTemplate.query(sqlQuery, this::MapRowToGenre);
+        return jdbcTemplate.query(sqlQuery, this::mapRowToGenre);
     }
 
-    private Genre MapRowToGenre(ResultSet resultSet, int rowNum) throws SQLException {
+    private Genre mapRowToGenre(ResultSet resultSet, int rowNum) throws SQLException {
         return Genre.builder()
                 .id(resultSet.getInt("genre_id"))
                 .name(resultSet.getString("genre_name"))
