@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -10,6 +11,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.user.UserStorage;
+import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -19,13 +22,18 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class UserServiceTest {
+public class UserTest {
 
     private static final String HOST = "http://localhost:";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     HttpHeaders applicationJsonHeaders;
     @Autowired
     private TestRestTemplate testRestTemplate;
+    @Autowired
+    @Qualifier("H2UserRepository")
+    private UserStorage userStorage;
+    @Autowired
+    private TestDataProducer testDataProducer;
     @Value(value = "${local.server.port}")
     private int port;
     private URI usersUrl;
@@ -37,53 +45,32 @@ public class UserServiceTest {
         applicationJsonHeaders.setContentType(MediaType.APPLICATION_JSON);
     }
 
-    private URI createGetUserByIdUrl(int id) {
+    private URI createGetUserByIdUrl(Long id) {
         return URI.create(String.format("%s%s/users/%d", HOST, port, id));
     }
 
-    private URI createAddOrDeleteUserFriendUrl(int currentUserId, int friendId) {
+    private URI createAddOrDeleteUserFriendUrl(Long currentUserId, Long friendId) {
         return URI.create(String.format("%s%s/users/%d/friends/%d", HOST, port, currentUserId, friendId));
     }
 
-    private URI createGetUserFriendsUrl(int id) {
+    private URI createGetUserFriendsUrl(Long id) {
         return URI.create(String.format("%s%s/users/%d/friends", HOST, port, id));
     }
 
-    private URI createGetCommonFriendsUrl(int userId, int comparedUserId) {
+    private URI createGetCommonFriendsUrl(Long userId, Long comparedUserId) {
         return URI.create(String.format("%s%s/users/%d/friends/common/%d", HOST, port, userId, comparedUserId));
     }
 
     // =============================== POST /users ======================================
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldCreateUser() {
-        User user = new User(
-                "Name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
+        User user = testDataProducer.getDefaultMutableUser();
 
         User createdUser = testRestTemplate.postForObject(usersUrl, user, User.class);
 
-        user.setId(1L);
+        user.setId(createdUser.getId());
         assertEquals(user, createdUser, "Created user doesn't match original user");
-    }
-
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    @Test
-    public void shouldIncrementIdWhenUserCreating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-
-        User createdUser = testRestTemplate.postForObject(usersUrl, user, User.class);
-
-        assertEquals(1L, createdUser.getId());
     }
 
     @Test
@@ -377,17 +364,11 @@ public class UserServiceTest {
 
     // =============================== PUT /users ======================================
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldUpdateUser() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
-        user.setId(1L);
+        User user = testDataProducer.getDefaultMutableUser();
+        Long createdUserId = userStorage.addUser(user).getId();
+        user.setId(createdUserId);
         user.setName("new name");
         HttpEntity<User> entity = new HttpEntity<>(user, applicationJsonHeaders);
 
@@ -401,41 +382,11 @@ public class UserServiceTest {
         assertEquals(user, updatedUser, "User has not been updated");
     }
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    @Test
-    public void shouldIncrementIdWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
-        user.setId(1L);
-        user.setName("new name");
-        HttpEntity<User> entity = new HttpEntity<>(user, applicationJsonHeaders);
-
-        User updatedUser = testRestTemplate.exchange(
-                usersUrl,
-                HttpMethod.PUT,
-                entity,
-                User.class
-        ).getBody();
-
-        assertEquals(user.getId(), updatedUser.getId(), "Wrong id");
-    }
-
     @Test
     public void shouldUseLoginForNameIfNameIsAbsentWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
+        Long createdUserId = testDataProducer.addDefaultUserToDB();
         String body = "{" +
-                "\"id\": 1," +
+                "\"id\": " + createdUserId + "," +
                 "\"email\": \"email@domen.ru\"," +
                 "\"login\": \"login\"," +
                 "\"birthday\": \"2000-01-01\"" +
@@ -454,15 +405,9 @@ public class UserServiceTest {
 
     @Test
     public void shouldUseLoginForNameIfNameIsEmptyWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
+        Long createdUserId = testDataProducer.addDefaultUserToDB();
         String body = "{" +
-                "\"id\": 1," +
+                "\"id\": " + createdUserId + "," +
                 "\"name\": \" \"," +
                 "\"email\": \"email@domen.ru\"," +
                 "\"login\": \"login\"," +
@@ -482,13 +427,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfEmailIsAbsentWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -512,13 +450,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfEmailIsEmptyWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -543,13 +474,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfEmailNotContainsSymbolAtWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -574,13 +498,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfLoginIsAbsentWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -604,13 +521,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfLoginIsEmptyWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -635,13 +545,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfLoginIsContainsSpacesOutsideWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -666,13 +569,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfLoginIsContainsSpacesInsideWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -697,13 +593,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfBirthdayIsAbsentWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -727,13 +616,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfBirthdayIsEmptyWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -758,13 +640,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfBirthdayIsLaterWhenNowWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"new name\"," +
@@ -789,13 +664,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldReturn400IfIdIsAbsentInRequestWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
                 "\"name\": \"new name\"," +
                 "\"login\": \"login\"," +
@@ -818,17 +686,9 @@ public class UserServiceTest {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfIdIsWrongInRequestWhenUserUpdating() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
         String body = "{" +
-                "\"id\": 3," +
+                "\"id\": 9999," +
                 "\"name\": \"new name\"," +
                 "\"login\": \"login\"," +
                 "\"email\": \"email@domen.ru\"," +
@@ -854,14 +714,8 @@ public class UserServiceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldReturnUsers() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
-        user.setId(1L);
+        User user = testDataProducer.getDefaultMutableUser();
+        user = userStorage.addUser(user);
 
         List<User> requestedUsers = testRestTemplate.exchange(
                 usersUrl,
@@ -893,19 +747,12 @@ public class UserServiceTest {
     // =============================== GET /users/{id} ======================================
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnUserById() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, user, User.class);
-        user.setId(1L);
+        User user = testDataProducer.getDefaultMutableUser();
+        user = userStorage.addUser(user);
 
         User requestedUser = testRestTemplate.exchange(
-                createGetUserByIdUrl(1),
+                createGetUserByIdUrl(user.getId()),
                 HttpMethod.GET,
                 null,
                 User.class
@@ -918,393 +765,310 @@ public class UserServiceTest {
     public void shouldReturn400IfIdIsZero() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createGetUserByIdUrl(0),
+                createGetUserByIdUrl(0L),
                 HttpMethod.GET,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
     public void shouldReturn400IfIdIsNegative() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createGetUserByIdUrl(-1),
+                createGetUserByIdUrl(-1L),
                 HttpMethod.GET,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfUserNotFoundById() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createGetUserByIdUrl(1),
+                createGetUserByIdUrl(9999L),
                 HttpMethod.GET,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     // =============================== PUT /users/{id}/friends/{friendId} ======================================
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldAddFriendToUser() {
-        User currentUser = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
-        User friend = new User(
-                "name2",
-                "login2",
-                "email2@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, friend, User.class);
+        Long currentUserId = testDataProducer.addDefaultUserToDB();
+        Long friendId = testDataProducer.addDefaultUserToDB();
+
 
         testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
+                createAddOrDeleteUserFriendUrl(currentUserId, friendId),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        currentUser = testRestTemplate.getForObject(
-                createGetUserByIdUrl(1),
-                User.class
-        );
-        friend = testRestTemplate.getForObject(
-                createGetUserByIdUrl(2),
-                User.class
-        );
-        assertTrue(currentUser.getFriends().containsKey(friend.getId()));
-        assertTrue(friend.getFriends().containsKey(currentUser.getId()));
+        User currentUser = userStorage.getUserById(currentUserId).get();
+        User friend = userStorage.getUserById(friendId).get();
+        List<User> currentUserFriends = userStorage.getUserFriends(currentUserId);
+        List<User> friendFriends = userStorage.getUserFriends(friendId);
+        assertTrue(currentUserFriends.contains(friend), "Friend not added");
+        assertFalse(currentUserFriends.contains(currentUser), "Friendship is mutual, but should not");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsZeroWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(0, 1),
+                createAddOrDeleteUserFriendUrl(0L, 1L),
                 HttpMethod.PUT,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(-1, 1),
+                createAddOrDeleteUserFriendUrl(-1L, 1L),
                 HttpMethod.PUT,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
     public void shouldReturn404IfFriendIdIsZeroWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 0),
+                createAddOrDeleteUserFriendUrl(1L, 0L),
                 HttpMethod.PUT,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
     public void shouldReturn404IfFriendIdIsNegativeWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, -1),
+                createAddOrDeleteUserFriendUrl(1L, -1L),
                 HttpMethod.PUT,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfUserIsAbsentWhenAddFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
+                createAddOrDeleteUserFriendUrl(9999L, 2L),
                 HttpMethod.PUT,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfFriendIsAbsentWhenAddFriend() {
-        User currentUser = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
+        testDataProducer.addDefaultUserToDB();
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
+                createAddOrDeleteUserFriendUrl(1L, 9999L),
                 HttpMethod.PUT,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     // =============================== DELETE /users/{id}/friends/{friendId} ======================================
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void shouldDeleteFriendFromUser() {
-        User currentUser = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
-        User friend = new User(
-                "friend",
-                "login2",
-                "email2@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, friend, User.class);
-        User friend2 = new User(
-                "friend2",
-                "login2",
-                "email2@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, friend2, User.class);
-        testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
-                HttpMethod.PUT,
-                null,
-                String.class
-        );
-        testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 3),
-                HttpMethod.PUT,
-                null,
-                String.class
-        );
+    public void shouldDeleteFriendFromUserIfOneWayFriendship() {
+        Long currentUserId = testDataProducer.addDefaultUserToDB();
+        Long friendId = testDataProducer.addDefaultUserToDB();
+        userStorage.addFriendToUser(currentUserId, friendId);
 
         testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
+                createAddOrDeleteUserFriendUrl(currentUserId, friendId),
                 HttpMethod.DELETE,
                 null,
                 User.class
         );
 
-        List<User> currentUserFriends = testRestTemplate.exchange(
-                createGetUserFriendsUrl(1),
-                HttpMethod.GET,
+        List<User> currentUserFriends = userStorage.getUserFriends(currentUserId);
+        List<User> friendFriends = userStorage.getUserFriends(friendId);
+        User currentUser = userStorage.getUserById(currentUserId).get();
+        User friend = userStorage.getUserById(friendId).get();
+        assertFalse(currentUserFriends.contains(friend), "Friend not deleted");
+        assertFalse(friendFriends.contains(currentUser), "Friendship is mutual, but should not");
+    }
+
+    @Test
+    public void shouldDeleteFriendFromUserIfMutualFriendship() {
+        Long currentUserId = testDataProducer.addDefaultUserToDB();
+        Long friendId = testDataProducer.addDefaultUserToDB();
+        userStorage.addFriendToUser(currentUserId, friendId);
+        userStorage.addFriendToUser(friendId, currentUserId);
+
+        testRestTemplate.exchange(
+                createAddOrDeleteUserFriendUrl(currentUserId, friendId),
+                HttpMethod.DELETE,
                 null,
-                new ParameterizedTypeReference<List<User>>() {
-                }
-        ).getBody();
-        friend = testRestTemplate.getForObject(
-                createGetUserByIdUrl(2),
                 User.class
         );
-        friend2 = testRestTemplate.getForObject(
-                createGetUserByIdUrl(3),
-                User.class
-        );
-        assertEquals(1, currentUserFriends.size());
-        assertTrue(currentUserFriends.contains(friend2));
-        assertFalse(currentUserFriends.contains(friend));
+
+        List<User> currentUserFriends = userStorage.getUserFriends(currentUserId);
+        List<User> friendFriends = userStorage.getUserFriends(friendId);
+        User currentUser = userStorage.getUserById(currentUserId).get();
+        User friend = userStorage.getUserById(friendId).get();
+        assertFalse(currentUserFriends.contains(friend), "Friend not deleted");
+        assertTrue(friendFriends.contains(currentUser), "Friend should not been deleted");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsZeroWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(0, 1),
+                createAddOrDeleteUserFriendUrl(0L, 1L),
                 HttpMethod.DELETE,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(-1, 1),
+                createAddOrDeleteUserFriendUrl(-1L, 1L),
                 HttpMethod.DELETE,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
     public void shouldReturn404IfFriendIdIsZeroWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 0),
+                createAddOrDeleteUserFriendUrl(1L, 0L),
                 HttpMethod.DELETE,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
     public void shouldReturn404IfFriendIdIsNegativeWhenDeleteFriend() {
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, -1),
+                createAddOrDeleteUserFriendUrl(1L, -1L),
                 HttpMethod.DELETE,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfUserIsAbsentWhenDeleteFriend() {
+        testDataProducer.addDefaultUserToDB();
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
+                createAddOrDeleteUserFriendUrl(9999L, 1L),
                 HttpMethod.DELETE,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfFriendIsAbsentWhenDeleteFriend() {
-        User currentUser = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
+        testDataProducer.addDefaultUserToDB();
 
         ResponseEntity<User> responseEntity = testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
+                createAddOrDeleteUserFriendUrl(1L, 9999L),
                 HttpMethod.DELETE,
                 null,
                 User.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status");
     }
 
     // =============================== GET /users/{id}/friends ======================================
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnUserFriends() {
-        User currentUser = new User(
-                "user",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
-        User friend = new User(
-                "friend",
-                "login2",
-                "email2@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, friend, User.class);
-        testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 2),
-                HttpMethod.PUT,
-                null,
-                User.class
-        );
+        Long currentUserId = testDataProducer.addDefaultUserToDB();
+        Long friendId = testDataProducer.addDefaultUserToDB();
+        userStorage.addFriendToUser(currentUserId, friendId);
 
         List<User> currentUserFriends = testRestTemplate.exchange(
-                createGetUserFriendsUrl(1),
+                createGetUserFriendsUrl(currentUserId),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<User>>() {
                 }
         ).getBody();
         List<User> userFriendFriends = testRestTemplate.exchange(
-                createGetUserFriendsUrl(2),
+                createGetUserFriendsUrl(friendId),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<User>>() {
                 }
         ).getBody();
-        friend = testRestTemplate.getForObject(
-                createGetUserByIdUrl(2),
-                User.class
-        );
-        currentUser = testRestTemplate.getForObject(
-                createGetUserByIdUrl(1),
-                User.class
-        );
-        assertTrue(currentUserFriends.contains(friend));
-        assertTrue(userFriendFriends.contains(currentUser));
+
+        User friend = userStorage.getUserById(friendId).get();
+        User currentUser = userStorage.getUserById(currentUserId).get();
+        assertTrue(currentUserFriends.contains(friend), "Wrong friends list size");
+        assertFalse(userFriendFriends.contains(currentUser), "Wrong friends list size");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnEmptyListWhenNoFriends() {
-        User currentUser = new User(
-                "user",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
+        Long currentUserId = testDataProducer.addDefaultUserToDB();
 
         List<User> requestedUsers = testRestTemplate.exchange(
-                createGetUserFriendsUrl(1),
+                createGetUserFriendsUrl(currentUserId),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<User>>() {
                 }
         ).getBody();
 
-        assertTrue(requestedUsers.isEmpty());
+        assertTrue(requestedUsers.isEmpty(), "Wrong friends list size");
     }
 
     @Test
@@ -1312,13 +1076,13 @@ public class UserServiceTest {
 
         ResponseEntity<String> responseEntity =
                 testRestTemplate.exchange(
-                        createGetUserFriendsUrl(0),
+                        createGetUserFriendsUrl(0L),
                         HttpMethod.GET,
                         null,
                         String.class
                 );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status");
     }
 
     @Test
@@ -1326,64 +1090,35 @@ public class UserServiceTest {
 
         ResponseEntity<String> responseEntity =
                 testRestTemplate.exchange(
-                        createGetUserFriendsUrl(-1),
+                        createGetUserFriendsUrl(-1L),
                         HttpMethod.GET,
                         null,
                         String.class
                 );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status");
     }
 
     // =============================== GET /users/{id}/friends/common/{otherId} ====================================
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnCommonFriendsList() {
-        User currentUser = new User(
-                "user",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
-        User friend = new User(
-                "friend",
-                "friend",
-                "friend@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, friend, User.class);
-        User common = new User(
-                "common",
-                "common",
-                "common@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, common, User.class);
-        testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(1, 3),
-                HttpMethod.PUT,
-                null,
-                User.class
-        );
-        testRestTemplate.exchange(
-                createAddOrDeleteUserFriendUrl(2, 3),
-                HttpMethod.PUT,
-                null,
-                User.class
-        );
+        Long firstUserId = testDataProducer.addDefaultUserToDB();
+        Long secondUserId = testDataProducer.addDefaultUserToDB();
+        Long commonFriendId = testDataProducer.addDefaultUserToDB();
+        userStorage.addFriendToUser(firstUserId, commonFriendId);
+        userStorage.addFriendToUser(secondUserId, commonFriendId);
 
         List<User> requestedUsers = testRestTemplate.exchange(
-                createGetCommonFriendsUrl(1, 2),
+                createGetCommonFriendsUrl(firstUserId, secondUserId),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<User>>() {
                 }
         ).getBody();
 
-        common = testRestTemplate.getForObject(createGetUserByIdUrl(3), User.class);
-        assertEquals(1, requestedUsers.size());
-        assertTrue(requestedUsers.contains(common));
+        User commonFriend = userStorage.getUserById(commonFriendId).get();
+        assertEquals(1, requestedUsers.size(), "Wrong common friends count");
+        assertTrue(requestedUsers.contains(commonFriend), "Common friend is not in the list");
 
     }
 
@@ -1391,81 +1126,68 @@ public class UserServiceTest {
     public void shouldReturn400IfUserIdIsZeroWhenGetCommonFriends() {
         ResponseEntity<String> responseEntity =
                 testRestTemplate.exchange(
-                        createGetCommonFriendsUrl(0, 1),
+                        createGetCommonFriendsUrl(0L, 1L),
                         HttpMethod.GET,
                         null,
                         String.class
                 );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn400IfUserIdIsNegativeWhenGetCommonFriends() {
         ResponseEntity<String> responseEntity =
                 testRestTemplate.exchange(
-                        createGetCommonFriendsUrl(-1, 1),
+                        createGetCommonFriendsUrl(-1L, 1L),
                         HttpMethod.GET,
                         null,
                         String.class
                 );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn400IfComparedUserIdIsZeroWhenGetCommonFriends() {
         ResponseEntity<String> responseEntity =
                 testRestTemplate.exchange(
-                        createGetCommonFriendsUrl(0, 1),
+                        createGetCommonFriendsUrl(0L, 1L),
                         HttpMethod.GET,
                         null,
                         String.class
                 );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn400IfComparedUserIdIsNegativeWhenGetCommonFriends() {
         ResponseEntity<String> responseEntity =
                 testRestTemplate.exchange(
-                        createGetCommonFriendsUrl(-1, 1),
+                        createGetCommonFriendsUrl(-1L, 1L),
                         HttpMethod.GET,
                         null,
                         String.class
                 );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturnEmptyListIfNoCommonFriends() {
-        User currentUser = new User(
-                "user",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, currentUser, User.class);
-        User friend = new User(
-                "friend",
-                "friend",
-                "friend@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(usersUrl, friend, User.class);
+        Long firstUserId = testDataProducer.addDefaultUserToDB();
+        Long secondUserId = testDataProducer.addDefaultUserToDB();
 
         List<User> requestedUsers = testRestTemplate.exchange(
-                createGetCommonFriendsUrl(1, 2),
+                createGetCommonFriendsUrl(firstUserId, secondUserId),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<User>>() {
                 }
         ).getBody();
 
-        assertTrue(requestedUsers.isEmpty());
-
+        assertTrue(requestedUsers.isEmpty(), "Common friend found but shouldn not");
     }
 
 }
