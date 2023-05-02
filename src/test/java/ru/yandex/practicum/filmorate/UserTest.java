@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
 import java.net.URI;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
