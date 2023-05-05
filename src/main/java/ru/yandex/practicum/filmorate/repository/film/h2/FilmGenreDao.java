@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.GenreNotExistsException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiFunction;
 
 @Component
 @RequiredArgsConstructor
@@ -22,17 +22,22 @@ class FilmGenreDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public void setGenreToFilm(Long filmId, int genreId) {
+    public void setGenresToFilm(Long filmId, Set<Integer> genresIds) {
         String sqlQuery = "MERGE INTO film_genre " +
                 "VALUES ( :filmId, :genreId)";
-        SqlParameterSource namedParams = new MapSqlParameterSource()
-                .addValue("filmId", filmId)
-                .addValue("genreId", genreId);
+        List<SqlParameterSource> namedParamsList = new ArrayList<>(genresIds.size());
+        for (Integer genreId : genresIds) {
+            MapSqlParameterSource namedParam = new MapSqlParameterSource()
+                    .addValue("filmId", filmId)
+                    .addValue("genreId", genreId);
+            namedParamsList.add(namedParam);
+        }
+
         try {
-            jdbcTemplate.update(sqlQuery, namedParams);
+            jdbcTemplate.batchUpdate(sqlQuery, namedParamsList.toArray(SqlParameterSource[]::new));
         } catch (DataIntegrityViolationException e) {
             throw new GenreNotExistsException(
-                    String.format("Genre with id %d doesn't exist", genreId)
+                    String.format("One of genres doesn't exist")
             );
         }
 
@@ -58,6 +63,41 @@ class FilmGenreDao {
         List<Genre> filmGenres = jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToGenre);
 
         return filmGenres.isEmpty() ? new HashSet<>() : new HashSet<>(filmGenres);
+    }
+
+    public Map<Long, Set<Genre>> getGenresToFilms(List<Long> filmsIds) {
+        String sqlQuery = "SELECT fg.film_id, g.genre_id, g.genre_name " +
+                "FROM genre AS g " +
+                "RIGHT JOIN film_genre AS fg ON g.genre_id = fg.genre_id " +
+                "WHERE g.genre_id IN " +
+                "(SELECT genre_id " +
+                "FROM film_genre " +
+                "WHERE film_id IN (:filmIds))";
+        SqlParameterSource namedParams = new MapSqlParameterSource("filmIds", filmsIds);
+        Map<Long, Set<Genre>> filmsWithGenres = new HashMap<>();
+
+        List<Map<Long, Genre>> filmIdWithGenreList = jdbcTemplate.query(sqlQuery, namedParams, ((rs, rowNum) -> {
+            return Collections.singletonMap(
+                    rs.getLong("film_id"),
+                    Genre.builder()
+                            .id(rs.getInt("genre_id"))
+                            .name(rs.getString("genre_name"))
+                            .build());
+        }));
+
+        filmIdWithGenreList.stream()
+                .flatMap(map -> map.entrySet().stream())
+                .forEach((entry -> {
+                    if (filmsWithGenres.containsKey(entry.getKey())) {
+                        filmsWithGenres.get(entry.getKey()).add(entry.getValue());
+                    } else {
+                        filmsWithGenres.put(entry.getKey(), Set.of(entry.getValue()));
+                    }
+                }
+                ));
+
+        return filmsWithGenres;
+
     }
 
     public Genre getGenreById(int id) {

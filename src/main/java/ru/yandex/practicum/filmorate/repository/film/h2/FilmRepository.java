@@ -17,9 +17,8 @@ import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Qualifier("H2FilmRepository")
@@ -47,9 +46,13 @@ public class FilmRepository implements FilmStorage {
         }
 
         if (!film.getGenres().isEmpty()) {
-            film.getGenres().stream()
+            Set<Integer> genresIdSet = film.getGenres()
+                    .stream()
                     .mapToInt(Genre::getId)
-                    .forEach(genreId -> filmGenreDao.setGenreToFilm(filmId, genreId));
+                    .boxed()
+                    .collect(Collectors.toSet());
+
+        filmGenreDao.setGenresToFilm(filmId, genresIdSet);
         }
 
         film.setId(filmId);
@@ -79,9 +82,13 @@ public class FilmRepository implements FilmStorage {
 
         filmGenreDao.clearGenresFromFilm(film.getId());
         if (!film.getGenres().isEmpty()) {
-            film.getGenres().stream()
+            Set<Integer> genresIdSet = film.getGenres()
+                    .stream()
                     .mapToInt(Genre::getId)
-                    .forEach(genreId -> filmGenreDao.setGenreToFilm(film.getId(), genreId));
+                    .boxed()
+                    .collect(Collectors.toSet());
+
+            filmGenreDao.setGenresToFilm(film.getId(), genresIdSet);
         }
 
         return film;
@@ -89,11 +96,13 @@ public class FilmRepository implements FilmStorage {
 
     @Override
     public List<Film> getAllFilms() {
-        String sqlQuery = "SELECT film_id, film_name, description, release_date, duration, mpa_rating_id " +
-                "FROM film ";
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id";
 
         List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
-        films.forEach(this::fetchAdditionalParams);
+        fetchAdditionalParamsToFilmsList(films);
         return films;
     }
 
@@ -121,22 +130,23 @@ public class FilmRepository implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
-                "f.mpa_rating_id " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
                 "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
                 "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
                 "GROUP BY f.film_id " +
                 "ORDER BY SUM(likes.user_id) DESC " +
                 "LIMIT :count";
         SqlParameterSource namedParam = new MapSqlParameterSource("count", count);
-        List<Film> films = new ArrayList<>(count);
+        List<Film> films;
 
         try {
             films = jdbcTemplate.query(sqlQuery, namedParam, this::mapRowToFilm);
         } catch (EmptyResultDataAccessException e) {
-            return films;
+            return List.of();
         }
 
-        films.forEach(this::fetchAdditionalParams);
+        fetchAdditionalParamsToFilmsList(films);
         return films;
 
     }
@@ -162,28 +172,64 @@ public class FilmRepository implements FilmStorage {
     }
 
     private void fetchAdditionalParams(Film film) {
-        fetchRatingMpa(film);
         fetchGenres(film);
         fetchLikes(film);
     }
 
-    private void fetchRatingMpa(Film film) {
-        film.setMpa(ratingMpaDao.getMpaByIdFromDb(film.getMpa().getId()));
+    private void fetchAdditionalParamsToFilmsList(List<Film> films) {
+        fetchGenresToFilms(films);
+        fetchLikesToFilms(films);
     }
 
     private void fetchGenres(Film film) {
         film.setGenres(filmGenreDao.getGenresToFilm(film.getId()));
     }
 
+    private void fetchGenresToFilms(List<Film> films) {
+        List<Long> filmIds = getIdsFromFilmsList(films);
+        Map<Long, Set<Genre>> mapFilmIdToGenres = filmGenreDao.getGenresToFilms(filmIds);
+
+        films.forEach(film -> {
+            if (mapFilmIdToGenres.containsKey(film.getId())) {
+                film.setGenres(mapFilmIdToGenres.get(film.getId()));
+            }
+        });
+    }
+
     private void fetchLikes(Film film) {
         film.setLikesCount(filmLikesDao.getFilmLikes(film.getId()));
     }
 
+    private void fetchLikesToFilms(List<Film> films) {
+        List<Long> filmsIds = getIdsFromFilmsList(films);
+        Map<Long, Long> filmsIdsMapToCountLikes = filmLikesDao.getFilmsLikes(filmsIds);
+
+        if (filmsIdsMapToCountLikes.isEmpty()) {
+            return;
+        }
+
+        films.forEach(film -> {
+            if (filmsIdsMapToCountLikes.containsKey(film.getId())) {
+                film.setLikesCount(filmsIdsMapToCountLikes.get(film.getId()));
+            }
+        });
+
+    }
+
+    private List<Long> getIdsFromFilmsList(List<Film> films) {
+        return films.stream()
+                .mapToLong(Film::getId)
+                .boxed()
+                .collect(Collectors.toList());
+    }
+
     //Возвращает фильм с базовыми полями из таблицы film
     public Optional<Film> getFilmByIdLite(Long filmId) {
-        String sqlQuery = "SELECT film_id, film_name, description, release_date, duration, mpa_rating_id " +
-                "FROM film " +
-                "WHERE film_id = :filmId";
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film f " +
+                "LEFT JOIN mpa_rating mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "WHERE f.film_id = :filmId";
         SqlParameterSource namedParam = new MapSqlParameterSource("filmId", filmId);
 
         Optional<Film> filmOptional;
@@ -207,6 +253,7 @@ public class FilmRepository implements FilmStorage {
                 .duration(resultSet.getInt("duration"))
                 .mpa(RatingMPA.builder()
                         .id(resultSet.getInt("mpa_rating_id"))
+                        .name(resultSet.getString("mpa_rating_name"))
                         .build()
                 )
                 .build();

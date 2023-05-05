@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 @Component
 @RequiredArgsConstructor
 class FilmLikesDao {
@@ -28,6 +30,35 @@ class FilmLikesDao {
         }
 
         return likes;
+    }
+
+    public Map<Long, Long> getFilmsLikes(List<Long> filmIds) {
+        String sqlQuery = "SELECT film_id, COUNT(user_id) " +
+                "FROM user_film_likes " +
+                "WHERE film_id IN (:filmIds) " +
+                "GROUP BY film_id";
+        Map<Long, Long> filmIdsMapToCountLikes = new HashMap<>();
+
+        SqlParameterSource namedParam = new MapSqlParameterSource("filmIds", filmIds);
+
+        List<Map<Long, Long>> filmsIdsLikesCountList = jdbcTemplate.query(sqlQuery, namedParam, (rs, rowNum) -> {
+            return Collections.singletonMap(
+                    rs.getLong("film_id"),
+                    rs.getLong("COUNT(user_id)")
+            );
+        });
+
+        if (filmsIdsLikesCountList.isEmpty()) {
+            return Map.of();
+        }
+
+        filmsIdsLikesCountList.stream()
+                .flatMap(map -> map.entrySet().stream())
+                .forEach((entry -> {
+                    filmIdsMapToCountLikes.put(entry.getKey(), entry.getValue());
+                }
+                ));
+        return filmIdsMapToCountLikes;
     }
 
     public void setFilmLike(Long filmId, Long userId) {
