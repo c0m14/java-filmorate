@@ -119,14 +119,12 @@ public class UserRepository implements UserStorage {
                 .addValue("userId", userId)
                 .addValue("otherUserId", otherUserId)
                 .addValue("confirmed", FriendConfirmationStatus.CONFIRMED.toString());
-        List<User> users;
 
         try {
-            users = jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToUser);
+            return jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToUser);
         } catch (EmptyResultDataAccessException e) {
-            return Collections.EMPTY_LIST;
+            return List.of();
         }
-        return users;
     }
 
     @Override
@@ -140,14 +138,12 @@ public class UserRepository implements UserStorage {
         SqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("confirmed", FriendConfirmationStatus.CONFIRMED.toString());
-        List<User> friends;
 
         try {
-            friends = jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToUser);
+            return jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToUser);
         } catch (EmptyResultDataAccessException e) {
-            return Collections.EMPTY_LIST;
+            return List.of();
         }
-        return friends;
     }
 
     @Override
