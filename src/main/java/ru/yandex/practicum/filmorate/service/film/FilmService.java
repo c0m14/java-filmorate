@@ -1,12 +1,10 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 import ru.yandex.practicum.filmorate.service.validator.FilmFieldsValidator;
@@ -62,19 +60,4 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
-    public RatingMPA getMpaById(int id) {
-        return filmStorage.getMpaById(id);
-    }
-
-    public List<RatingMPA> getAllMpa() {
-        return filmStorage.getAllMpa();
-    }
-
-    public Genre getGenreById(int id) {
-        return filmStorage.getGenreById(id);
-    }
-
-    public List<Genre> getAllGenres() {
-        return filmStorage.getAllGenres();
-    }
 }

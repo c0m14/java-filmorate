@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.film.h2.RatingMpaDao;
 import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
 import java.net.URI;
@@ -36,6 +37,8 @@ public class FilmTest {
     @Autowired
     @Qualifier("H2FilmRepository")
     private FilmStorage filmStorage;
+    @Autowired
+    private RatingMpaDao ratingMpaDao;
     @Autowired
     private TestDataProducer testDataProducer;
     @Value(value = "${local.server.port}")
@@ -139,7 +142,7 @@ public class FilmTest {
         );
 
         Film savedFilm = filmStorage.getFilmByIdFull(createdFilm.getId()).get();
-        assertEquals(savedFilm.getMpa(), filmStorage.getMpaById(3), "Mpa is wrong in saved film");
+        assertEquals(savedFilm.getMpa(), ratingMpaDao.getMpaByIdFromDb(3), "Mpa is wrong in saved film");
     }
 
     @Test
@@ -461,7 +464,7 @@ public class FilmTest {
                 "\"mpa\": { \"id\": 3}" +
                 "}";
         HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
-        RatingMPA mpa = filmStorage.getMpaById(3);
+        RatingMPA mpa = ratingMpaDao.getMpaByIdFromDb(3);
 
         testRestTemplate.exchange(
                 filmsUrl,

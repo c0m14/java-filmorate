@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;

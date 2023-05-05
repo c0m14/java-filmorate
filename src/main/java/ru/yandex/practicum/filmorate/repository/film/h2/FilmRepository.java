@@ -17,7 +17,10 @@ import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -52,7 +55,7 @@ public class FilmRepository implements FilmStorage {
                     .boxed()
                     .collect(Collectors.toSet());
 
-        filmGenreDao.setGenresToFilm(filmId, genresIdSet);
+            filmGenreDao.setGenresToFilm(filmId, genresIdSet);
         }
 
         film.setId(filmId);
@@ -149,26 +152,6 @@ public class FilmRepository implements FilmStorage {
         fetchAdditionalParamsToFilmsList(films);
         return films;
 
-    }
-
-    @Override
-    public RatingMPA getMpaById(int mapId) {
-        return ratingMpaDao.getMpaByIdFromDb(mapId);
-    }
-
-    @Override
-    public List<RatingMPA> getAllMpa() {
-        return ratingMpaDao.getAllMpa();
-    }
-
-    @Override
-    public Genre getGenreById(int id) {
-        return filmGenreDao.getGenreById(id);
-    }
-
-    @Override
-    public List<Genre> getAllGenres() {
-        return filmGenreDao.getAllGenres();
     }
 
     private void fetchAdditionalParams(Film film) {

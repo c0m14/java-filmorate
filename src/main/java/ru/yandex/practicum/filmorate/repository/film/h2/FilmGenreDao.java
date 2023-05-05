@@ -10,15 +10,13 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.GenreNotExistsException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.BiFunction;
 
 @Component
 @RequiredArgsConstructor
-class FilmGenreDao {
+public class FilmGenreDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 

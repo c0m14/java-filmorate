@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-class RatingMpaDao {
+public class RatingMpaDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 

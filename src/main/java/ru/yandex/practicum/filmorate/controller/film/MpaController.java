@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.film.RatingMpaService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -20,20 +20,19 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/mpa")
 public class MpaController {
-
-    private final FilmService filmService;
+    private final RatingMpaService ratingMpaService;
 
     @GetMapping("/{id}")
     public RatingMPA getMpaById(
             @Valid
             @PathVariable("id") @Min(1) int id) {
         log.debug("Got request to get rating mpa with id {}", id);
-        return filmService.getMpaById(id);
+        return ratingMpaService.getMpaById(id);
     }
 
     @GetMapping
     public List<RatingMPA> getAllMpa() {
         log.debug("Got request to get all ratings mpa");
-        return filmService.getAllMpa();
+        return ratingMpaService.getAllMpa();
     }
 }

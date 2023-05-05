@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,16 +104,16 @@ public class UserRepository implements UserStorage {
         String sqlQuery = "SELECT user_id, user_name, login, email, birthday " +
                 "FROM users " +
                 "WHERE user_id IN " +
-                    "(SELECT friend_id FROM " +
-                        "(SELECT user_id, friend_id " +
-                        "FROM user_friend " +
-                        "WHERE user_id = :userId AND confirmation_status = :confirmed " +
-                        "UNION ALL " +
-                        "SELECT user_id, friend_id " +
-                        "FROM user_friend " +
-                        "WHERE user_id = :otherUserId AND confirmation_status = :confirmed) " +
-                    "GROUP BY FRIEND_ID " +
-                    "HAVING COUNT(USER_ID) > 1)";
+                "(SELECT friend_id FROM " +
+                "(SELECT user_id, friend_id " +
+                "FROM user_friend " +
+                "WHERE user_id = :userId AND confirmation_status = :confirmed " +
+                "UNION ALL " +
+                "SELECT user_id, friend_id " +
+                "FROM user_friend " +
+                "WHERE user_id = :otherUserId AND confirmation_status = :confirmed) " +
+                "GROUP BY FRIEND_ID " +
+                "HAVING COUNT(USER_ID) > 1)";
         SqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("otherUserId", otherUserId)
@@ -178,7 +177,7 @@ public class UserRepository implements UserStorage {
         }
 
         if (currentUserFriendStatus.get().equals(FriendConfirmationStatus.CONFIRMED) &&
-        currentFriendUserStatus.get().equals(FriendConfirmationStatus.WAITING_FOR_APPROVAL)) {
+                currentFriendUserStatus.get().equals(FriendConfirmationStatus.WAITING_FOR_APPROVAL)) {
             return jdbcTemplate.update(deleteBothRecordsSqlQuery, namedParams) > 0;
         }
 

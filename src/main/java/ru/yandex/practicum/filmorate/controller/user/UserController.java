@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
