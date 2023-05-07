@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -10,25 +11,36 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.film.h2.RatingMpaDao;
+import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class FilmControllerTest {
+public class FilmTest {
 
     private static final String HOST = "http://localhost:";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     HttpHeaders applicationJsonHeaders;
     @Autowired
     private TestRestTemplate testRestTemplate;
+    @Autowired
+    @Qualifier("H2FilmRepository")
+    private FilmStorage filmStorage;
+    @Autowired
+    private RatingMpaDao ratingMpaDao;
+    @Autowired
+    private TestDataProducer testDataProducer;
     @Value(value = "${local.server.port}")
     private int port;
     private URI filmsUrl;
@@ -45,13 +57,13 @@ public class FilmControllerTest {
 
     }
 
-    private URI createGetFilmByIdUrl(int filmId) {
+    private URI createGetFilmByIdUrl(Long filmId) {
         return URI.create(
                 String.format("%s%s/films/%d", HOST, port, filmId)
         );
     }
 
-    private URI createGiveOrDeleteLikeUrl(int filmId, int userId) {
+    private URI createGiveOrDeleteLikeUrl(Long filmId, Long userId) {
         return URI.create(
                 String.format("%s%s/films/%d/like/%d", HOST, port, filmId, userId)
         );
@@ -69,71 +81,128 @@ public class FilmControllerTest {
         );
     }
 
-    private void createContextWithPopularFilms() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
+    private URI createGetAllGenres() {
+        return URI.create(
+                String.format("%s%s/genres", HOST, port)
         );
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        for (int i = 0; i <= 10; i++) {
-            testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
-                    user,
-                    User.class);
-            testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        }
-
-        int likesCount = 11;
-        for (int i = 1; i <= 11; i++) {
-            for (int j = likesCount; j >= 1; j--) {
-                testRestTemplate.exchange(
-                        createGiveOrDeleteLikeUrl(i, j),
-                        HttpMethod.PUT,
-                        null,
-                        String.class
-                );
-            }
-            likesCount--;
-        }
     }
+
+    private URI createGetGenreById(int id) {
+        return URI.create(
+                String.format("%s%s/genres/%d", HOST, port, id)
+        );
+    }
+
+    private URI createGetAllMpa() {
+        return URI.create(
+                String.format("%s%s/mpa", HOST, port)
+        );
+    }
+
+    private URI createGetMpaById(int id) {
+        return URI.create(
+                String.format("%s%s/mpa/%d", HOST, port, id)
+        );
+    }
+
 
     // =============================== POST /films ======================================
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldCreateFilm() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
+        Film initialFilm = testDataProducer.getFilmWithoutGenres();
 
-        Film createdFilm = testRestTemplate.postForObject(filmsUrl, film, Film.class);
+        Film createdFilm = testRestTemplate.postForObject(filmsUrl, initialFilm, Film.class);
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilm.getId()).get();
 
-        film.setId(1L);
-        assertEquals(film, createdFilm, "Film creation Error");
+        assertNotNull(savedFilm, "Film is not saved in database");
+        assertEquals(initialFilm.getName(), savedFilm.getName(), "Incorrect field name in saved film");
+        assertEquals(initialFilm.getDescription(), savedFilm.getDescription(), "Incorrect field name in saved film");
+        assertEquals(initialFilm.getReleaseDate(), savedFilm.getReleaseDate(), "Incorrect field name in saved film");
+        assertEquals(initialFilm.getDuration(), savedFilm.getDuration(), "Incorrect field name in saved film");
+        assertEquals(initialFilm.getMpa().getId(), savedFilm.getMpa().getId(), "Incorrect field name in saved film");
     }
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
-    public void shouldIncrementIdCounterWhenFilmCreating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
+    public void shouldCreateFilmIfMpaIsSentWithoutName() {
+        String body = "{" +
+                "\"name\": \"New film\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200," +
+                "\"mpa\": { \"id\": 3}" +
+                "}";
+        HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
+
+        Film createdFilm = testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.POST,
+                entity,
+                Film.class).getBody(
         );
 
-        Film createdFilm = testRestTemplate.postForObject(filmsUrl, film, Film.class);
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilm.getId()).get();
+        assertEquals(savedFilm.getMpa(), ratingMpaDao.getMpaByIdFromDb(3), "Mpa is wrong in saved film");
+    }
 
-        assertEquals(1, createdFilm.getId(), "Id is not correct");
+    @Test
+    public void shouldCreateFilmWithGenres() {
+        Film initialFilm = testDataProducer.getFilmWithGenres();
+        Set<Genre> genres = testDataProducer.getCorrectGenres();
+
+        Film createdFilm = testRestTemplate.postForObject(filmsUrl, initialFilm, Film.class);
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilm.getId()).get();
+
+        assertEquals(genres.size(), savedFilm.getGenres().size(), "Wrong genres count");
+        assertEquals(genres, savedFilm.getGenres(), "Genres is not equals in request and database");
+    }
+
+    @Test
+    public void shouldCreateFilmWithGenresIfOnlyGenreIdIsSent() {
+        String body = "{" +
+                "\"name\": \"New film\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200," +
+                "\"mpa\": { \"id\": 3}," +
+                "\"genres\": [{ \"id\": 2}, { \"id\": 6}]" +
+                "}";
+        HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
+        Set<Genre> genres = testDataProducer.getCorrectGenres();
+
+        Film createdFilm = testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.POST,
+                entity,
+                Film.class).getBody(
+        );
+
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilm.getId()).get();
+        assertTrue(savedFilm.getGenres().equals(genres), "Expected genres is missing in saved film");
+        assertEquals(2, savedFilm.getGenres().size(), "Wrong count of genres");
+    }
+
+    @Test
+    public void shouldCreateFilmIfDuplicateGenres() {
+        String body = "{" +
+                "\"name\": \"New film\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200," +
+                "\"mpa\": { \"id\": 3}," +
+                "\"genres\": [{ \"id\": 2}, { \"id\": 6}, { \"id\": 2}]" +
+                "}";
+        HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
+
+        Film createdFilm = testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.POST,
+                entity,
+                Film.class).getBody(
+        );
+
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilm.getId()).get();
+        assertEquals(2, savedFilm.getGenres().size(), "Wrong count of genres");
     }
 
     @Test
@@ -334,14 +403,27 @@ public class FilmControllerTest {
     }
 
     @Test
+    public void shouldReturn404IfMpaRatingIdIsWrong() {
+        Film initialFilm = testDataProducer.getFilmWithWrongMpaId();
+
+        ResponseEntity<String> response = testRestTemplate.postForEntity(filmsUrl, initialFilm, String.class);
+
+        assertEquals(HttpStatus.valueOf(404), response.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn404IfGenreIdIsWrong() {
+        Film initialFilm = testDataProducer.getFilmWithWrongGenres();
+
+        ResponseEntity<String> response = testRestTemplate.postForEntity(filmsUrl, initialFilm, String.class);
+
+        assertEquals(HttpStatus.valueOf(404), response.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
     public void shouldReturn400IfIdIsSentInRequestWhenFilmCreating() {
-        Film film = new Film(
-                1L,
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1850-01-01", formatter),
-                120
-        );
+        Film film = testDataProducer.getMutableFilm();
+        film.setId(1L);
 
         ResponseEntity<String> entity = testRestTemplate.postForEntity(filmsUrl, film, String.class);
 
@@ -350,56 +432,133 @@ public class FilmControllerTest {
 
     // =============================== PUT /films ======================================
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldUpdateFilm() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        film.setId(1L);
-        film.setDescription("New description");
-        HttpEntity<Film> entity = new HttpEntity<>(film, applicationJsonHeaders);
+        Film initialFilm = testDataProducer.getMutableFilm();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        initialFilm.setDescription("New description");
+        initialFilm.setId(createdFilmId);
+        HttpEntity<Film> entity = new HttpEntity<>(initialFilm, applicationJsonHeaders);
 
+        testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class);
+        Film updatedFilm = filmStorage.getFilmByIdFull(createdFilmId).get();
 
-        Film updatedFilm = testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class)
-                .getBody();
-
-        assertEquals(film, updatedFilm, "Updated film is not correct");
+        assertNotNull(updatedFilm, "Error while saving updated film");
+        assertEquals(initialFilm.getName(), updatedFilm.getName(), "Field is not updated");
+        assertEquals(initialFilm.getDescription(), updatedFilm.getDescription(), "Field is not updated");
+        assertEquals(initialFilm.getReleaseDate(), updatedFilm.getReleaseDate(), "Field is not updated");
+        assertEquals(initialFilm.getDuration(), updatedFilm.getDuration(), "Field is not updated");
+        assertEquals(initialFilm.getMpa().getId(), updatedFilm.getMpa().getId(), "Field is not updated");
     }
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
-    public void shouldNotIncrementIdCounterWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        Film createdFilm = testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        film.setDescription("New description");
-        film.setId(1L);
-        HttpEntity<Film> entity = new HttpEntity<>(film, applicationJsonHeaders);
+    public void shouldUpdateFilmIfMpaIsSentWithoutName() {
+        Film initialFilm = testDataProducer.getFilmWithoutGenres();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        String body = "{" +
+                "\"id\": " + createdFilmId + "," +
+                "\"name\": \"New film\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200," +
+                "\"mpa\": { \"id\": 3}" +
+                "}";
+        HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
+        RatingMPA mpa = ratingMpaDao.getMpaByIdFromDb(3);
 
-        Film updatedFilm = testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class)
-                .getBody();
+        testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.PUT,
+                entity,
+                Film.class);
 
-        assertEquals(createdFilm.getId(), updatedFilm.getId(), "Id has changed");
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilmId).get();
+        assertEquals(savedFilm.getMpa(), mpa, "Error while creating mpa by id");
     }
+
+    @Test
+    public void shouldReplaceGenresWhenFilmUpdating() {
+        Film initialFilm = testDataProducer.getFilmWithoutGenres();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        Set<Genre> genres = testDataProducer.getCorrectGenres();
+        initialFilm.setGenres(genres);
+        HttpEntity<Film> entity = new HttpEntity<>(initialFilm, applicationJsonHeaders);
+
+        testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class);
+        Film savedUpdatedFilm = filmStorage.getFilmByIdFull(createdFilmId).get();
+
+        assertEquals(2, savedUpdatedFilm.getGenres().size(), "Wrong count of genres");
+        assertTrue(savedUpdatedFilm.getGenres().containsAll(genres), "Genres are not updated");
+    }
+
+    @Test
+    public void shouldRemoveGenresIfEmptyGenresListWhenFilmUpdating() {
+        Film initialFilm = testDataProducer.getFilmWithGenres();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        initialFilm.setGenres(Collections.EMPTY_SET);
+        HttpEntity<Film> entity = new HttpEntity<>(initialFilm, applicationJsonHeaders);
+
+        testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, Film.class);
+        Film savedUpdatedFilm = filmStorage.getFilmByIdFull(createdFilmId).get();
+
+        assertTrue(savedUpdatedFilm.getGenres().isEmpty(), "Genres are not updated");
+    }
+
+    @Test
+    public void shouldUpdateFilmWithGenresIfOnlyGenreIdIsSent() {
+        Film initialFilm = testDataProducer.getFilmWithoutGenres();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        String body = "{" +
+                "\"id\": " + createdFilmId + "," +
+                "\"name\": \"New film\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200," +
+                "\"mpa\": { \"id\": 3}," +
+                "\"genres\": [{ \"id\": 2}, { \"id\": 6}]" +
+                "}";
+        HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
+        Set<Genre> genres = testDataProducer.getCorrectGenres();
+
+        testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.PUT,
+                entity,
+                Film.class);
+
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilmId).get();
+        assertEquals(savedFilm.getGenres(), genres, "Expected genres are missing in updated film");
+        assertEquals(2, savedFilm.getGenres().size(), "Wrong count of genres");
+    }
+
+    @Test
+    public void shouldUpdateFilmIfDuplicateGenres() {
+        Film initialFilm = testDataProducer.getFilmWithoutGenres();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        String body = "{" +
+                "\"id\": " + createdFilmId + "," +
+                "\"name\": \"New film\"," +
+                "\"description\": \"Description\"," +
+                "\"releaseDate\": \"1900-03-25\"," +
+                "\"duration\": 200," +
+                "\"mpa\": { \"id\": 3}," +
+                "\"genres\": [{ \"id\": 2}, { \"id\": 6}, { \"id\": 2}]" +
+                "}";
+        HttpEntity<String> entity = new HttpEntity<>(body, applicationJsonHeaders);
+
+        testRestTemplate.exchange(
+                filmsUrl,
+                HttpMethod.PUT,
+                entity,
+                Film.class);
+
+        Film savedFilm = filmStorage.getFilmByIdFull(createdFilmId).get();
+        assertEquals(2, savedFilm.getGenres().size(), "Wrong count of genres");
+    }
+
 
     @Test
     public void shouldReturn400IfNameIsAbsentWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"description\": \"Description\"," +
@@ -421,13 +580,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfNameIsEmptyWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
                 1L,
                 "",
@@ -450,13 +602,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDescriptionIsAbsentWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"Titanic\"," +
@@ -478,13 +623,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDescriptionIsLongerThan200WhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updatedFilm = new Film(
                 1L,
                 "Titanic",
@@ -513,13 +651,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfRealiseDateIsAbsentWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"Titanic\"," +
@@ -541,13 +672,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfRealiseDateIsEmptyWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"Titanic\"," +
@@ -570,13 +694,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfReleaseDateIsBefore28d12m1895yWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
                 1L,
                 "Titanic",
@@ -599,13 +716,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDurationIsAbsentWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"Titanic\"," +
@@ -626,13 +736,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDurationIsEmptyWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         String body = "{" +
                 "\"id\": 1," +
                 "\"name\": \"Titanic\"," +
@@ -655,13 +758,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDurationIsZeroWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
                 1L,
                 "Titanic",
@@ -684,13 +780,6 @@ public class FilmControllerTest {
 
     @Test
     public void shouldReturn400IfDurationIsNegativeWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
         Film updated = new Film(
                 1L,
                 "Titanic",
@@ -712,20 +801,34 @@ public class FilmControllerTest {
     }
 
     @Test
+    public void shouldReturn404IfMpaRatingIdIsWrongWhenFilmUpdating() {
+        Film initialFilm = testDataProducer.getMutableFilm();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        initialFilm.setMpa(new RatingMPA(999, "G"));
+        initialFilm.setId(createdFilmId);
+        HttpEntity<Film> entity = new HttpEntity<>(initialFilm, applicationJsonHeaders);
+
+        ResponseEntity<String> response = testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, String.class);
+
+        assertEquals(HttpStatus.valueOf(404), response.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn404IfGenreIdIsWrongWhenFilmUpdating() {
+        Film initialFilm = testDataProducer.getMutableFilm();
+        Long createdFilmId = filmStorage.addFilm(initialFilm).getId();
+        initialFilm.setGenres(testDataProducer.getWrongGenres());
+        initialFilm.setId(createdFilmId);
+        HttpEntity<Film> entity = new HttpEntity<>(initialFilm, applicationJsonHeaders);
+
+        ResponseEntity<String> response = testRestTemplate.exchange(filmsUrl, HttpMethod.PUT, entity, String.class);
+
+        assertEquals(HttpStatus.valueOf(404), response.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
     public void shouldReturn400IfIdIsAbsentInRequestWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        Film updated = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                100
-        );
+        Film updated = testDataProducer.getMutableFilm();
         HttpEntity<Film> entity = new HttpEntity<>(updated, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
@@ -740,23 +843,10 @@ public class FilmControllerTest {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfIdIsWrongInRequestWhenFilmUpdating() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        Film updated = new Film(
-                3L,
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                100
-        );
-        HttpEntity<Film> entity = new HttpEntity<>(updated, applicationJsonHeaders);
+        Film initialFilm = testDataProducer.getMutableFilm();
+        initialFilm.setId(999L);
+        HttpEntity<Film> entity = new HttpEntity<>(initialFilm, applicationJsonHeaders);
 
         ResponseEntity<Film> filmResponseEntity = testRestTemplate.exchange(filmsUrl,
                 HttpMethod.PUT,
@@ -774,14 +864,9 @@ public class FilmControllerTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     public void shouldReturnFilms() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        film.setId(1L);
+        Film film = testDataProducer.getMutableFilm();
+        Long createdFilmId = filmStorage.addFilm(film).getId();
+        film.setId(createdFilmId);
 
         List<Film> requestedFilms = testRestTemplate.exchange(
                 filmsUrl,
@@ -812,376 +897,266 @@ public class FilmControllerTest {
     // =============================== GET /films/{id} ======================================
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnFilmById() {
-        Film film = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, film, Film.class);
-        film.setId(1L);
+        Film film = testDataProducer.getMutableFilm();
+        Long createdFilmId = filmStorage.addFilm(film).getId();
+        film.setId(createdFilmId);
 
         Film requestedFilm = testRestTemplate.exchange(
-                createGetFilmByIdUrl(1),
+                createGetFilmByIdUrl(createdFilmId),
                 HttpMethod.GET,
                 null,
                 Film.class
         ).getBody();
 
-        assertEquals(film, requestedFilm);
+        assertEquals(film, requestedFilm, "Wrong film returned");
     }
 
     @Test
     public void shouldReturn400IfIdIsZero() {
 
         ResponseEntity<Film> responseEntity = testRestTemplate.exchange(
-                createGetFilmByIdUrl(0),
+                createGetFilmByIdUrl(0L),
                 HttpMethod.GET,
                 null,
                 Film.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn400IfIdIsNegative() {
 
         ResponseEntity<Film> responseEntity = testRestTemplate.exchange(
-                createGetFilmByIdUrl(-1),
+                createGetFilmByIdUrl(-1L),
                 HttpMethod.GET,
                 null,
                 Film.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfFilmNotFoundById() {
 
         ResponseEntity<Film> responseEntity = testRestTemplate.exchange(
-                createGetFilmByIdUrl(1),
+                createGetFilmByIdUrl(9999L),
                 HttpMethod.GET,
                 null,
                 Film.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     // =============================== PUT /films/{id}/like/{userId} ======================================
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldGiveLikeFromUserToFilm() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
-                user,
-                User.class
-        );
-        user.setId(1L);
-        Film usualFilm = new Film(
-                "Titanic2",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, usualFilm, Film.class);
-        usualFilm.setId(1L);
-        Film toBeLikedFilm = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
-        toBeLikedFilm.setId(2L);
+        Long userId = testDataProducer.addDefaultUserToDB();
+        Long usualFilmId = testDataProducer.addDefaultFilmToDB();
+        Long filmToBeLikedId = testDataProducer.addDefaultFilmToDB();
 
         testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(2, 1),
+                createGiveOrDeleteLikeUrl(filmToBeLikedId, userId),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        List<Film> requestedFilms = testRestTemplate.exchange(
-                filmsUrl,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<Film>>() {
-                }
-        ).getBody();
-        toBeLikedFilm = requestedFilms.get(1);
-        usualFilm = requestedFilms.get(0);
-        assertEquals(1, toBeLikedFilm.getLikedFilmIds().size());
-        assertTrue(toBeLikedFilm.getLikedFilmIds().contains(user.getId()));
-        assertTrue(usualFilm.getLikedFilmIds().isEmpty());
+        Film toBeLikedFilm = filmStorage.getFilmByIdFull(filmToBeLikedId).get();
+        Film usualFilm = filmStorage.getFilmByIdFull(usualFilmId).get();
+        assertEquals(1, toBeLikedFilm.getLikesCount(), "Wrong likes count");
+        assertEquals(0, usualFilm.getLikesCount(), "Wrong likes count");
     }
 
     @Test
     public void shouldReturn404IfFilmIdIsZeroWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(0, 1),
+                createGiveOrDeleteLikeUrl(0L, 1L),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn404IfFilmIdIsNegativeWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(-1, 1),
+                createGiveOrDeleteLikeUrl(-1L, 1L),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsZeroWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, 0),
+                createGiveOrDeleteLikeUrl(1L, 0L),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenGivingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, -1),
+                createGiveOrDeleteLikeUrl(1L, -1L),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfFilmIsAbsentWhenGivingLike() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
-                user,
-                User.class
-        );
+        Long userId = testDataProducer.addDefaultUserToDB();
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, 1),
+                createGiveOrDeleteLikeUrl(9999L, userId),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfUserIsAbsentWhenGivingLike() {
-        Film toBeLikedFilm = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
+        Long filmId = testDataProducer.addDefaultFilmToDB();
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, 1),
+                createGiveOrDeleteLikeUrl(filmId, 9999L),
                 HttpMethod.PUT,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     // =============================== DELETE /films/{id}/like/{userId} ======================================
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldRemoveUserLikeFromFilm() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
-                user,
-                User.class
-        );
-        user.setId(1L);
-        Film usualFilm = new Film(
-                "Titanic2",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, usualFilm, Film.class);
-        usualFilm.setId(1L);
-        Film toBeLikedFilm = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
-        toBeLikedFilm.setId(2L);
-        testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(2, 1),
-                HttpMethod.PUT,
-                null,
-                String.class
-        );
+        Long toBeLikedFilmId = testDataProducer.addDefaultFilmToDB();
+        Long userId = testDataProducer.addDefaultUserToDB();
+        filmStorage.giveLikeFromUserToFilm(toBeLikedFilmId, userId);
 
         testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(2, 1),
+                createGiveOrDeleteLikeUrl(toBeLikedFilmId, userId),
                 HttpMethod.DELETE,
                 null,
                 String.class
         );
 
-        List<Film> requestedFilms = testRestTemplate.exchange(
-                filmsUrl,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<Film>>() {
-                }
-        ).getBody();
-        toBeLikedFilm = requestedFilms.get(1);
-        assertTrue(toBeLikedFilm.getLikedFilmIds().isEmpty());
+        Film toBeLikedFilm = filmStorage.getFilmByIdFull(toBeLikedFilmId).get();
+        assertEquals(0, toBeLikedFilm.getLikesCount(), "Like has not been deleted");
     }
 
     @Test
     public void shouldReturn404IfFilmIdIsZeroWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(0, 1),
+                createGiveOrDeleteLikeUrl(0L, 1L),
                 HttpMethod.DELETE,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn404IfFilmIdIsNegativeWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(-1, 1),
+                createGiveOrDeleteLikeUrl(-1L, 1L),
                 HttpMethod.DELETE,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsZeroWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, 0),
+                createGiveOrDeleteLikeUrl(1L, 0L),
                 HttpMethod.DELETE,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenRemovingLike() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, -1),
+                createGiveOrDeleteLikeUrl(1L, -1L),
                 HttpMethod.DELETE,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfFilmIsAbsentWhenRemovingLike() {
-        User user = new User(
-                "name",
-                "login",
-                "email@domen.ru",
-                LocalDate.of(2000, 1, 1)
-        );
-        testRestTemplate.postForObject(URI.create(String.format("%s%s/users", HOST, port)),
-                user,
-                User.class
-        );
+        Long userId = testDataProducer.addDefaultUserToDB();
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, 1),
+                createGiveOrDeleteLikeUrl(9999L, userId),
                 HttpMethod.DELETE,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturn404IfUserIsAbsentWhenRemovingLike() {
-        Film toBeLikedFilm = new Film(
-                "Titanic",
-                "Drama",
-                LocalDate.parse("1994-01-01", formatter),
-                120
-        );
-        testRestTemplate.postForObject(filmsUrl, toBeLikedFilm, Film.class);
+        Long filmId = testDataProducer.addDefaultFilmToDB();
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
-                createGiveOrDeleteLikeUrl(1, 1),
+                createGiveOrDeleteLikeUrl(filmId, 9999L),
                 HttpMethod.DELETE,
                 null,
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
+
+    // =============================== GET /films/popular ======================================
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnPopularFilmsWithoutCountParameter() {
-        createContextWithPopularFilms();
+        testDataProducer.createContextWithPopularFilms();
 
         List<Film> requestedFilms = testRestTemplate.exchange(
                 createGetPopularFilmsNoParameter(),
@@ -1191,21 +1166,17 @@ public class FilmControllerTest {
                 }
         ).getBody();
 
-        Film mostPopularFilm = requestedFilms.stream()
-                .max(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
-                .get();
-        Film leastPopularFilm = requestedFilms.stream()
-                .min(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
-                .get();
-        assertEquals(10, requestedFilms.size());
-        assertEquals(mostPopularFilm, requestedFilms.get(0));
-        assertEquals(leastPopularFilm, requestedFilms.get(9));
+        Film mostPopularFilm = filmStorage.getFilmByIdFull(1L).get();
+        Film leastPopularFilm = filmStorage.getFilmByIdFull(10L).get();
+        assertEquals(10, requestedFilms.size(), "Wrong popular films list size");
+        assertEquals(mostPopularFilm, requestedFilms.get(0), "Wrong most popular film in response");
+        assertEquals(leastPopularFilm, requestedFilms.get(9), "Wrong least popular film in response");
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnPopularFilmsWithCountParameter() {
-        createContextWithPopularFilms();
+        testDataProducer.createContextWithPopularFilms();
 
         List<Film> requestedFilms = testRestTemplate.exchange(
                 createGetPopularFilmsWithParameter(11),
@@ -1215,15 +1186,11 @@ public class FilmControllerTest {
                 }
         ).getBody();
 
-        Film mostPopularFilm = requestedFilms.stream()
-                .max(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
-                .get();
-        Film leastPopularFilm = requestedFilms.stream()
-                .min(Comparator.comparingInt(film -> film.getLikedFilmIds().size()))
-                .get();
-        assertEquals(11, requestedFilms.size());
-        assertEquals(mostPopularFilm, requestedFilms.get(0));
-        assertEquals(leastPopularFilm, requestedFilms.get(10));
+        Film mostPopularFilm = filmStorage.getFilmByIdFull(1L).get();
+        Film leastPopularFilm = filmStorage.getFilmByIdFull(11L).get();
+        assertEquals(11, requestedFilms.size(), "Wrong popular films list size");
+        assertEquals(mostPopularFilm, requestedFilms.get(0), "Wrong most popular film in response");
+        assertEquals(leastPopularFilm, requestedFilms.get(10), "Wrong least popular film in response");
     }
 
     @Test
@@ -1236,7 +1203,7 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -1249,7 +1216,155 @@ public class FilmControllerTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode());
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+// =============================== GET /genres ======================================
+
+    @Test
+    public void shouldReturnAllGenresList() {
+        List<Genre> fullGenresList = List.of(
+                new Genre(1, "Комедия"),
+                new Genre(2, "Драма"),
+                new Genre(3, "Мультфильм"),
+                new Genre(4, "Триллер"),
+                new Genre(5, "Документальный"),
+                new Genre(6, "Боевик")
+        );
+
+        List<Genre> requestedGenres = testRestTemplate.exchange(
+                createGetAllGenres(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Genre>>() {
+                }
+        ).getBody();
+
+        assertEquals(6, requestedGenres.size(), "Wrong genres number in response");
+        assertEquals(fullGenresList, requestedGenres, "Genres don't fetch");
+    }
+
+// =============================== GET /genres/{id} ======================================
+
+    @Test
+    public void shouldReturnGenreById() {
+
+        Genre requestedGenre = testRestTemplate.getForObject(
+                createGetGenreById(1),
+                Genre.class
+        );
+
+        assertEquals("Комедия", requestedGenre.getName(), "Wrong genre in response");
+        assertEquals(1, requestedGenre.getId(), "Wrong genre in response");
+    }
+
+    @Test
+    public void shouldReturn400IfGenreIdIsZero() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetGenreById(0),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn400IfGenreIdIsNegative() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetGenreById(-1),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn404IfGenreIdIsNotExist() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetGenreById(999),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    // =============================== GET /mpa ======================================
+
+    @Test
+    public void shouldGetAllMpaRatings() {
+        List<RatingMPA> fullRatingMpaList = List.of(
+                new RatingMPA(1, "G"),
+                new RatingMPA(2, "PG"),
+                new RatingMPA(3, "PG-13"),
+                new RatingMPA(4, "R"),
+                new RatingMPA(5, "NC-17")
+        );
+
+        List<RatingMPA> requestedMpa = testRestTemplate.exchange(
+                createGetAllMpa(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<RatingMPA>>() {
+                }
+        ).getBody();
+
+        assertEquals(5, requestedMpa.size(), "Wrong mpa number in response");
+        assertEquals(fullRatingMpaList, requestedMpa, "Mpa don't fetch");
+    }
+
+    // =============================== GET /mpa/{id} ======================================
+    @Test
+    public void shouldReturnMpaById() {
+
+        RatingMPA requestedMpa = testRestTemplate.getForObject(
+                createGetMpaById(1),
+                RatingMPA.class
+        );
+
+        assertEquals("G", requestedMpa.getName(), "Wrong mpa in response");
+        assertEquals(1, requestedMpa.getId(), "Wrong mpa in response");
+    }
+
+    @Test
+    public void shouldReturn400IfMpaIdIsZero() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetMpaById(0),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn400IfMpaIdIsNegative() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetMpaById(-1),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn404IfMpaIdIsNotExist() {
+
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetMpaById(999),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
 }

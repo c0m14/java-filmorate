@@ -2,17 +2,19 @@ package ru.yandex.practicum.filmorate.service.validator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserFieldsValidator {
+    @Qualifier("H2UserRepository")
     private final UserStorage userStorage;
 
     public void checkUserFields(User user, RequestType requestType) throws InvalidUserFieldsException {

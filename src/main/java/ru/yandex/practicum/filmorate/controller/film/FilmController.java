@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.controller.film;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -35,6 +35,7 @@ public class FilmController {
 
     @GetMapping
     public List<Film> getAllFilms() {
+        log.debug("Got request to get all films");
         return filmService.getAllFilms();
     }
 
@@ -53,6 +54,7 @@ public class FilmController {
             @PathVariable("id") Long filmId,
             @PathVariable("userId") Long userId
     ) {
+        log.debug("Got request to add like from user with id {} to film with id {}", userId, filmId);
         filmService.giveLikeFromUserToFilm(filmId, userId);
     }
 
@@ -62,6 +64,7 @@ public class FilmController {
             @PathVariable("id") Long filmId,
             @PathVariable("userId") Long userId
     ) {
+        log.debug("Got request to remove like from user with id {} from film with id {}", userId, filmId);
         filmService.removeUserLikeFromFilm(filmId, userId);
     }
 
@@ -69,6 +72,7 @@ public class FilmController {
     public List<Film> getPopularFilms(
             @RequestParam(value = "count", defaultValue = "10") @Min(1) int count
     ) {
+        log.debug("Got request to get {} most popular film(s)", count);
         return filmService.getPopularFilms(count);
     }
 

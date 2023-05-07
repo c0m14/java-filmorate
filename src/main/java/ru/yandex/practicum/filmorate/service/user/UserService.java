@@ -1,21 +1,21 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.user;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 import ru.yandex.practicum.filmorate.service.validator.UserFieldsValidator;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    @Qualifier("H2UserRepository")
     private final UserStorage userStorage;
     private final UserFieldsValidator userFieldsValidator;
 
@@ -34,40 +34,30 @@ public class UserService {
     }
 
     public void addUserFriend(Long currentUserId, Long newFriendId) {
-        User currentUser = getUserFromStorageById(currentUserId);
-        User newFriend = getUserFromStorageById(newFriendId);
+        userFieldsValidator.checkIfPresentById(currentUserId);
+        userFieldsValidator.checkIfPresentById(newFriendId);
 
-        currentUser.getFriends().add(newFriendId);
-        newFriend.getFriends().add(currentUserId);
+        userStorage.addFriendToUser(currentUserId, newFriendId);
     }
 
     public void removeUserFriend(Long currentUserId, Long friendId) {
-        User currentUser = getUserFromStorageById(currentUserId);
-        User newFriend = getUserFromStorageById(friendId);
+        userFieldsValidator.checkIfPresentById(currentUserId);
+        userFieldsValidator.checkIfPresentById(friendId);
 
-        currentUser.getFriends().remove(friendId);
-        newFriend.getFriends().remove(currentUserId);
+        userStorage.removeFriendFromUser(currentUserId, friendId);
     }
 
     public List<User> getFriendsForUser(Long currentUserId) {
-        User currentUser = getUserFromStorageById(currentUserId);
-        return currentUser.getFriends().stream()
-                .map(userStorage::getUserById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+        userFieldsValidator.checkIfPresentById(currentUserId);
+
+        return userStorage.getUserFriends(currentUserId);
     }
 
     public List<User> getCommonFriends(Long currentUserId, Long comparedUserId) {
-        User currentUser = getUserFromStorageById(currentUserId);
-        User comparedUser = getUserFromStorageById(comparedUserId);
+        userFieldsValidator.checkIfPresentById(currentUserId);
+        userFieldsValidator.checkIfPresentById(comparedUserId);
 
-        return currentUser.getFriends().stream()
-                .filter(id -> comparedUser.getFriends().contains(id))
-                .map(userStorage::getUserById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+        return userStorage.getCommonFriends(currentUserId, comparedUserId);
     }
 
     public User getUserFromStorageById(Long userId) {

@@ -1,22 +1,24 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RequestType;
+import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 import ru.yandex.practicum.filmorate.service.validator.FilmFieldsValidator;
 import ru.yandex.practicum.filmorate.service.validator.UserFieldsValidator;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FilmService {
 
+    @Qualifier("H2FilmRepository")
     private final FilmStorage filmStorage;
+
     private final FilmFieldsValidator filmFieldsValidator;
     private final UserFieldsValidator userFieldsValidator;
 
@@ -35,7 +37,7 @@ public class FilmService {
     }
 
     public Film getFilmFromStorageById(Long filmId) {
-        return filmStorage.getFilmById(filmId).orElseThrow(
+        return filmStorage.getFilmByIdFull(filmId).orElseThrow(
                 () -> new FilmNotExistException(String.format("Film with id %d doesn't exist", filmId))
         );
     }
@@ -44,26 +46,18 @@ public class FilmService {
         userFieldsValidator.checkIfPresentById(userId);
         filmFieldsValidator.checkIfPresentById(filmId);
 
-        filmStorage.getFilmById(filmId)
-                .get()
-                .getLikedFilmIds()
-                .add(userId);
+        filmStorage.giveLikeFromUserToFilm(filmId, userId);
     }
 
     public void removeUserLikeFromFilm(Long filmId, Long userId) {
         filmFieldsValidator.checkIfPresentById(filmId);
         userFieldsValidator.checkIfPresentById(userId);
 
-        filmStorage.getFilmById(filmId)
-                .get()
-                .getLikedFilmIds()
-                .remove(userId);
+        filmStorage.removeUserLikeFromFilm(filmId, userId);
     }
 
     public List<Film> getPopularFilms(int count) {
-        return filmStorage.getAllFilms().stream()
-                .sorted((film1, film2) -> film2.getLikedFilmIds().size() - film1.getLikedFilmIds().size())
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getPopularFilms(count);
     }
+
 }
