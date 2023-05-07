@@ -35,7 +35,7 @@ public class FilmGenreDao {
             jdbcTemplate.batchUpdate(sqlQuery, namedParamsList.toArray(SqlParameterSource[]::new));
         } catch (DataIntegrityViolationException e) {
             throw new GenreNotExistsException(
-                    String.format("One of genres doesn't exist")
+                    "One of genres doesn't exist"
             );
         }
 
@@ -50,19 +50,6 @@ public class FilmGenreDao {
         jdbcTemplate.update(sqlQuery, namedParam);
     }
 
-    public Set<Genre> getGenresToFilm(Long filmId) {
-        String sqlQuery = "SELECT genre_id, genre_name " +
-                "FROM genre " +
-                "WHERE genre_id IN " +
-                "(SELECT genre_id " +
-                "FROM film_genre " +
-                "WHERE film_id = :filmId)";
-        MapSqlParameterSource namedParams = new MapSqlParameterSource("filmId", filmId);
-        List<Genre> filmGenres = jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToGenre);
-
-        return filmGenres.isEmpty() ? new HashSet<>() : new HashSet<>(filmGenres);
-    }
-
     public Map<Long, Set<Genre>> getGenresToFilms(List<Long> filmsIds) {
         String sqlQuery = "SELECT fg.film_id, g.genre_id, g.genre_name " +
                 "FROM genre AS g " +
@@ -74,14 +61,12 @@ public class FilmGenreDao {
         SqlParameterSource namedParams = new MapSqlParameterSource("filmIds", filmsIds);
         Map<Long, Set<Genre>> filmsWithGenres = new HashMap<>();
 
-        List<Map<Long, Genre>> filmIdWithGenreList = jdbcTemplate.query(sqlQuery, namedParams, ((rs, rowNum) -> {
-            return Collections.singletonMap(
-                    rs.getLong("film_id"),
-                    Genre.builder()
-                            .id(rs.getInt("genre_id"))
-                            .name(rs.getString("genre_name"))
-                            .build());
-        }));
+        List<Map<Long, Genre>> filmIdWithGenreList = jdbcTemplate.query(sqlQuery, namedParams, ((rs, rowNum) -> Collections.singletonMap(
+                rs.getLong("film_id"),
+                Genre.builder()
+                        .id(rs.getInt("genre_id"))
+                        .name(rs.getString("genre_name"))
+                        .build())));
 
         filmIdWithGenreList.stream()
                 .flatMap(map -> map.entrySet().stream())
@@ -89,7 +74,9 @@ public class FilmGenreDao {
                     if (filmsWithGenres.containsKey(entry.getKey())) {
                         filmsWithGenres.get(entry.getKey()).add(entry.getValue());
                     } else {
-                        filmsWithGenres.put(entry.getKey(), Set.of(entry.getValue()));
+                        Set<Genre> genres = new HashSet<>();
+                        genres.add(entry.getValue());
+                        filmsWithGenres.put(entry.getKey(), genres);
                     }
                 }
                 ));

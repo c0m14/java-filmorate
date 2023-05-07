@@ -17,10 +17,7 @@ import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -115,7 +112,7 @@ public class FilmRepository implements FilmStorage {
         Optional<Film> filmOptional = getFilmByIdLite(filmId);
 
         //Добавляем дополнительные параметры
-        filmOptional.ifPresent(this::fetchAdditionalParams);
+        filmOptional.ifPresent(film -> fetchAdditionalParamsToFilmsList(Collections.singletonList(film)));
 
         return filmOptional;
     }
@@ -154,18 +151,9 @@ public class FilmRepository implements FilmStorage {
 
     }
 
-    private void fetchAdditionalParams(Film film) {
-        fetchGenres(film);
-        fetchLikes(film);
-    }
-
     private void fetchAdditionalParamsToFilmsList(List<Film> films) {
         fetchGenresToFilms(films);
         fetchLikesToFilms(films);
-    }
-
-    private void fetchGenres(Film film) {
-        film.setGenres(filmGenreDao.getGenresToFilm(film.getId()));
     }
 
     private void fetchGenresToFilms(List<Film> films) {
@@ -177,10 +165,6 @@ public class FilmRepository implements FilmStorage {
                 film.setGenres(mapFilmIdToGenres.get(film.getId()));
             }
         });
-    }
-
-    private void fetchLikes(Film film) {
-        film.setLikesCount(filmLikesDao.getFilmLikes(film.getId()));
     }
 
     private void fetchLikesToFilms(List<Film> films) {
