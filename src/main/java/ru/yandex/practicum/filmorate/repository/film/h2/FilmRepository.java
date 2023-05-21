@@ -135,7 +135,7 @@ public class FilmRepository implements FilmStorage {
                 "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
                 "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
                 "GROUP BY f.film_id " +
-                "ORDER BY SUM(likes.user_id) DESC " +
+                "ORDER BY COUNT(likes.user_id) DESC " +
                 "LIMIT :count";
         SqlParameterSource namedParam = new MapSqlParameterSource("count", count);
         List<Film> films;
@@ -149,6 +149,38 @@ public class FilmRepository implements FilmStorage {
         fetchAdditionalParamsToFilmsList(films);
         return films;
 
+    }
+
+    @Override
+    public List<Film> getCommonFilms(Long userId, Long otherUserId) {
+        String sqlSubQuery = "(SELECT film_id " +
+                "FROM user_film_likes " +
+                "WHERE user_id = :userId " +
+                "INTERSECT " +
+                "SELECT film_id " +
+                "FROM user_film_likes " +
+                "WHERE user_id = :otherUserId) ";
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
+                "WHERE f.film_id IN " + sqlSubQuery +
+                "GROUP BY f.film_id " +
+                "ORDER BY COUNT(likes.user_id) DESC";
+        SqlParameterSource namedParam = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("otherUserId", otherUserId);
+        List<Film> films;
+
+        try {
+            films = jdbcTemplate.query(sqlQuery, namedParam, this::mapRowToFilm);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
+
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
     }
 
     private void fetchAdditionalParamsToFilmsList(List<Film> films) {
