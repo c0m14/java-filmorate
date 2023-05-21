@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.feed.Feed;
+import ru.yandex.practicum.filmorate.service.feed.FeedService;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import javax.validation.Valid;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequestMapping(value = "/users")
 public class UserController {
     private final UserService userService;
+    private final FeedService feedService;
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) throws InvalidUserFieldsException {
@@ -93,5 +96,19 @@ public class UserController {
     ) {
         log.debug("Got request to delete user with id: {}", userId);
         userService.removeUserById(userId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Feed> getUserFeed(
+            @Valid
+            @PathVariable("id") @Min(1) Long userId
+    ) {
+        log.debug("Got request to get feed list for user with id: {}", userId);
+        return feedService.getFeedListById(userId);
+    }
+
+    @PutMapping("/dosmf")
+    public void doSMF() {
+        feedService.reviewTest();
     }
 }
