@@ -133,4 +133,18 @@ public class TestDataProducer {
             usersIds.remove(usersIds.size() - 1);
         }
     }
+
+    public void createContextWithCommonFilms() {
+        for (int i = 0; i < 3; i++) {
+            addDefaultFilmToDB();
+        }
+        for (int i = 0; i < 4; i++) {
+            addDefaultUserToDB();
+        }
+        for (long i = 1; i < 4; i++) {
+            for (long j = i; j < 4; j++) {
+                filmStorage.giveLikeFromUserToFilm(j, i);
+            }
+        }
+    }
 }

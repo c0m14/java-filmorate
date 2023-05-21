@@ -60,4 +60,11 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
+    public List<Film> getCommonFilms(Long userId, Long otherUserId) {
+        userFieldsValidator.checkIfPresentById(userId);
+        userFieldsValidator.checkIfPresentById(otherUserId);
+
+        return filmStorage.getCommonFilms(userId, otherUserId);
+    }
+
 }

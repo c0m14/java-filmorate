@@ -105,6 +105,12 @@ public class FilmTest {
         );
     }
 
+    private URI createGetCommon(long userId, long otherUserId) {
+        return URI.create(
+                String.format("%s%s/films/common?userId=%d&friendId=%d", HOST, port, userId, otherUserId)
+        );
+    }
+
 
     // =============================== POST /films ======================================
 
@@ -1367,4 +1373,60 @@ public class FilmTest {
         assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
+    // =============================== GET films/common ======================================
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnCommonFilms() {
+        testDataProducer.createContextWithCommonFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetCommon(1, 2),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+        assertEquals(2, requestedFilms.size(), "Wrong common films list size");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(0),
+                "Wrong most popular common film in response");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(1),
+                "Wrong least popular common film in response");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyCommonFilmsList() {
+        testDataProducer.createContextWithCommonFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetCommon(3, 4),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+        assertEquals(0, requestedFilms.size(), "Wrong common films list size");
+    }
+
+    @Test
+    public void shouldReturn404IfUserDoesNotExist() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetCommon(9999, 1),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn404IfOtherUserDoesNotExist() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetCommon(1, 9999),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
+    }
 }
