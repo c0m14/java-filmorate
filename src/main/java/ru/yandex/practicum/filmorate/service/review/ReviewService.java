@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service.review;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ReviewNotExistsException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.repository.review.ReviewStorage;
@@ -30,5 +31,13 @@ public class ReviewService {
         reviewFieldsValidator.checkReviewId(review.getReviewId(), RequestType.UPDATE);
 
         return reviewStorage.updateReview(review);
+    }
+
+    public Review getReviewById(Long reviewId) {
+        return reviewStorage.getReviewById(reviewId)
+                .orElseThrow(
+                        () -> new ReviewNotExistsException(
+                                String.format("Review with id %d does not exist", reviewId)
+                        ));
     }
 }

@@ -64,6 +64,7 @@ public class ReviewRepository implements ReviewStorage {
         return reviewFromDb;
     }
 
+    @Override
     public Optional<Review> getReviewById(Long reviewId) {
         String sqlQuery = "SELECT review_id, user_id, film_id, content, is_positive " +
                 "FROM review " +

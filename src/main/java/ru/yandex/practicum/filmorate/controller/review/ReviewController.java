@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.review.ReviewService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 
 @Slf4j
 @RestController
@@ -29,5 +30,15 @@ public class ReviewController {
         log.debug("Got request to update review {}", review);
 
         return reviewService.updateReview(review);
+    }
+
+    @GetMapping("/{id}")
+    public Review getReviewById(
+            @Valid
+            @PathVariable("id") @Min(1) Long reviewId
+    ) {
+        log.debug("Got request to get review with id {}", reviewId);
+        
+        return reviewService.getReviewById(reviewId);
     }
 }
