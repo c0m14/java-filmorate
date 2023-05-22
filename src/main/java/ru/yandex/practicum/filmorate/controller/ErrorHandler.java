@@ -30,7 +30,11 @@ public class ErrorHandler {
 
     }
 
-    @ExceptionHandler({InvalidUserFieldsException.class, InvalidFilmFieldsException.class})
+    @ExceptionHandler({
+            InvalidUserFieldsException.class,
+            InvalidFilmFieldsException.class,
+            InvalidReviewFieldsException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleInvalidFieldsExceptionWithManualValidation(InvalidFieldsException e) {
         log.error(e.getMessage());
