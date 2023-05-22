@@ -29,6 +29,8 @@ public class Review {
     public Map<String, Object> mapToDb() {
         Map<String, Object> userValues = new HashMap<>();
         userValues.put("review_id", reviewId);
+        userValues.put("user_id", userId);
+        userValues.put("film_id", filmId);
         userValues.put("content", content);
         userValues.put("is_positive", isPositive);
 
