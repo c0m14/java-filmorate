@@ -5,4 +5,5 @@ import ru.yandex.practicum.filmorate.model.Review;
 public interface ReviewStorage {
 
     Review addReview(Review review);
+    Review updateReview(Review review);
 }

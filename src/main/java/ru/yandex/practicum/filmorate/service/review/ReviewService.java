@@ -25,4 +25,10 @@ public class ReviewService {
 
         return reviewStorage.addReview(review);
     }
+
+    public Review updateReview (Review review) {
+        reviewFieldsValidator.checkReviewId(review.getReviewId(), RequestType.UPDATE);
+
+        return reviewStorage.updateReview(review);
+    }
 }
