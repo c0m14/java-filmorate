@@ -20,9 +20,9 @@ public class Review {
     private String content;
     @NotNull
     private Boolean isPositive;
-    @Positive
+    @NotNull
     private Long userId;
-    @Positive
+    @NotNull
     private Long filmId;
     private int useful;
 
