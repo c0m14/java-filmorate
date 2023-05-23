@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.controller.review;
 
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -51,6 +50,7 @@ public class ReviewController {
 
         return reviewService.getReviewById(reviewId);
     }
+
     @GetMapping
     public List<Review> getReviews(
             @RequestParam(value = "filmId", required = false) @Min(1) Long filmId,

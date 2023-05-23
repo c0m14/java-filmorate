@@ -8,13 +8,22 @@ import java.util.Optional;
 public interface ReviewStorage {
 
     Review addReview(Review review);
+
     Review updateReview(Review review);
+
     boolean deleteReview(Long reviewId);
+
     Optional<Review> getReviewById(Long reviewId);
+
     List<Review> getFilmReviews(Long filmId, int count);
+
     List<Review> getAllReviews(int count);
+
     void addLikeToReview(Long reviewId, Long userId);
+
     boolean removeLikeFromReview(Long reviewId, Long userId);
+
     void addDislikeToReview(Long reviewId, Long userId);
+
     boolean removeDislikeFromReview(Long reviewId, Long userId);
 }
