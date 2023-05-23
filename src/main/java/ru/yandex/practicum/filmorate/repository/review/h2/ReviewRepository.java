@@ -169,32 +169,29 @@ public class ReviewRepository implements ReviewStorage {
         return jdbcTemplate.update(sqlQuery, namedParams) > 0;
     }
 
+    @Override
+    public boolean deleteReview(Long reviewId) {
+        String sqlQuery = "DELETE FROM review " +
+                "WHERE review_id = :reviewId";
+        MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
+
+        return jdbcTemplate.update(sqlQuery, namedParam) > 0;
+    }
+
     private Integer calculateUseful(Long reviewId) {
-        Integer likes = 0;
-        Integer dislikes = 0;
-        String likesSqlQuery = "SELECT COUNT(user_id) " +
-                "FROM user_review_likes " +
-                "WHERE review_id = :reviewId " +
-                "GROUP BY review_id";
-        String dislikesSqlQuery = "SELECT COUNT(user_id) " +
-                "FROM user_review_dislikes " +
-                "WHERE review_id = :reviewId " +
-                "GROUP BY review_id";
+        String sqlQuery = "SELECT COUNT(likes.user_id) - COUNT(dislikes.user_id) " +
+                "FROM user_review_likes AS likes " +
+                "INNER JOIN user_review_dislikes AS dislikes ON likes.review_id = dislikes.review_id " +
+                "WHERE likes.review_id = :reviewId AND dislikes.review_id = :reviewId " +
+                "GROUP BY likes.review_id, dislikes.review_id";
+
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
 
         try {
-            likes = jdbcTemplate.queryForObject(likesSqlQuery, namedParam, Integer.class);
+            return jdbcTemplate.queryForObject(sqlQuery, namedParam, Integer.class);
         } catch (EmptyResultDataAccessException e) {
-            log.warn("Likes not found for review with id {}", reviewId);
+            return 0;
         }
-
-        try {
-            dislikes = jdbcTemplate.queryForObject(dislikesSqlQuery, namedParam, Integer.class);
-        } catch (EmptyResultDataAccessException e) {
-            log.warn("Dislikes not found for review with id {}", reviewId);
-        }
-
-        return likes - dislikes;
     }
 
     private Review mapRowToReview(ResultSet resultSet, int rowNum) throws SQLException {

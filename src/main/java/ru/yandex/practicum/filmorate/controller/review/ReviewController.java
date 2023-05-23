@@ -34,6 +34,14 @@ public class ReviewController {
         return reviewService.updateReview(review);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteReview(
+            @PathVariable(value = "id") @Min(1) Long reviewId
+    ) {
+        log.debug("Got request to delete review with id {}", reviewId);
+        reviewService.deleteReview(reviewId);
+    }
+
     @GetMapping("/{id}")
     public Review getReviewById(
             @Valid

@@ -70,6 +70,13 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewNotExistException(ReviewNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewId", e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseList handleConstraintViolationException(ConstraintViolationException e) {
         log.error(e.getMessage());

@@ -79,4 +79,8 @@ public class ReviewService {
         reviewStorage.removeDislikeFromReview(reviewId, userId);
     }
 
+    public void deleteReview(Long reviewId) {
+        reviewStorage.deleteReview(reviewId);
+    }
+
 }
