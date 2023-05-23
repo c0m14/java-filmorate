@@ -9,20 +9,22 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.film.h2.RatingMpaDao;
+import ru.yandex.practicum.filmorate.service.recommendations.RecommendationsService;
 import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,6 +34,7 @@ public class FilmTest {
     private static final String HOST = "http://localhost:";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     HttpHeaders applicationJsonHeaders;
+    private URI usersUrl;
     @Autowired
     private TestRestTemplate testRestTemplate;
     @Autowired
@@ -39,6 +42,8 @@ public class FilmTest {
     private FilmStorage filmStorage;
     @Autowired
     private RatingMpaDao ratingMpaDao;
+    @Autowired
+    private RecommendationsService recommendationsService;
     @Autowired
     private TestDataProducer testDataProducer;
     @Value(value = "${local.server.port}")
@@ -55,6 +60,7 @@ public class FilmTest {
         applicationJsonHeaders = new HttpHeaders();
         applicationJsonHeaders.setContentType(MediaType.APPLICATION_JSON);
 
+        usersUrl = URI.create(String.format("%s%s/users", HOST, port));
     }
 
     private URI createGetFilmByIdUrl(Long filmId) {
@@ -123,10 +129,10 @@ public class FilmTest {
 
         assertNotNull(savedFilm, "Film is not saved in database");
         assertEquals(initialFilm.getName(), savedFilm.getName(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getDescription(), savedFilm.getDescription(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getReleaseDate(), savedFilm.getReleaseDate(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getDuration(), savedFilm.getDuration(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getMpa().getId(), savedFilm.getMpa().getId(), "Incorrect field name in saved film");
+        assertEquals(initialFilm.getDescription(), savedFilm.getDescription(), "Incorrect field description in saved film");
+        assertEquals(initialFilm.getReleaseDate(), savedFilm.getReleaseDate(), "Incorrect field releaseDate in saved film");
+        assertEquals(initialFilm.getDuration(), savedFilm.getDuration(), "Incorrect field duration in saved film");
+        assertEquals(initialFilm.getMpa().getId(), savedFilm.getMpa().getId(), "Incorrect field mpa in saved film");
     }
 
     @Test
@@ -1428,5 +1434,39 @@ public class FilmTest {
                 String.class);
 
         assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldFillSeveralUserLikes(){
+        Map<Long, Set<Long>> userLikes;
+        Long userId = testDataProducer.addDefaultUserToDB();
+        Long userId2 = testDataProducer.addDefaultUserToDB();
+        Long filmToBeLikedId = testDataProducer.addDefaultFilmToDB();
+        Long filmToBeLikedId2 = testDataProducer.addDefaultFilmToDB();
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(filmToBeLikedId, userId),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(filmToBeLikedId2, userId),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(filmToBeLikedId, userId2),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        userLikes = filmStorage.fillInUserLikes();
+        assertEquals(2, userLikes.get(userId).size());
+        assertEquals(1, userLikes.get(userId2).size());
     }
 }
