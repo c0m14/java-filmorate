@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service.recommendations;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@Slf4j
 public class RecommendationsService {
 
     private Map<Long, Set<Long>> usersLikedFilmsIds;
@@ -19,7 +21,7 @@ public class RecommendationsService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private Set<Long> findSimilarUsers(long userId) {
+    private Set<Long> findUsersWithIntersectingLikes(long userId) {
         Set<Long> similarUsers = new HashSet<>();
         Set<Long> userLikedFilms = usersLikedFilmsIds.get(userId);
 
@@ -86,6 +88,7 @@ public class RecommendationsService {
         List<Film> films = new ArrayList<>();
 
         if (filmIds.isEmpty()) {
+            log.info("Нет рекомендованных фильмов");
             return films;
         }
 
@@ -130,7 +133,7 @@ public class RecommendationsService {
 
     public List<Film> getRecommendations(long userId) {
         usersLikedFilmsIds = fillInUserLikes();
-        Set<Long> similarUsers = findSimilarUsers(userId);
+        Set<Long> similarUsers = findUsersWithIntersectingLikes(userId);
         Set<Long> recommendedFilmIds = findRecommendedFilmIds(userId, similarUsers);
         return getFilmsByIds(recommendedFilmIds);
     }
