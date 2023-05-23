@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.repository.review.ReviewStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -82,6 +83,48 @@ public class ReviewRepository implements ReviewStorage {
         return reviewOptional;
     }
 
+    @Override
+    public List<Review> getFilmReviews(Long filmId, int count) {
+        String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
+                "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
+                "FROM review AS r " +
+                "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
+                "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
+                "WHERE r.film_id = :filmId " +
+                "GROUP BY r.review_id, likes.review_id, dislikes.review_id " +
+                "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) " +
+                "LIMIT :count";
+        MapSqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("filmId", filmId)
+                .addValue("count", count);
+
+        try {
+            return jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToReviewWithUseful);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
+
+    }
+
+    @Override
+    public List<Review> getAllReviews(int count) {
+        String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
+                "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
+                "FROM review AS r " +
+                "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
+                "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
+                "GROUP BY r.review_id, likes.review_id, dislikes.review_id " +
+                "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) " +
+                "LIMIT :count";
+        MapSqlParameterSource namedParams = new MapSqlParameterSource("count", count);
+
+        try {
+            return jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToReviewWithUseful);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
+    }
+
     private Integer calculateUseful(Long reviewId) {
         Integer likes = 0;
         Integer dislikes = 0;
@@ -117,6 +160,17 @@ public class ReviewRepository implements ReviewStorage {
                 .filmId(resultSet.getLong("film_id"))
                 .content(resultSet.getString("content"))
                 .isPositive(resultSet.getBoolean("is_positive"))
+                .build();
+    }
+
+    private Review mapRowToReviewWithUseful(ResultSet resultSet, int rowNum) throws SQLException {
+        return Review.builder()
+                .reviewId(resultSet.getLong("review_id"))
+                .userId(resultSet.getLong("user_id"))
+                .filmId(resultSet.getLong("film_id"))
+                .content(resultSet.getString("content"))
+                .isPositive(resultSet.getBoolean("is_positive"))
+                .useful(resultSet.getInt("useful"))
                 .build();
     }
 

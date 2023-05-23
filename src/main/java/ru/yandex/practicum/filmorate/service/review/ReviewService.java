@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.service.validator.FilmFieldsValidator;
 import ru.yandex.practicum.filmorate.service.validator.ReviewFieldsValidator;
 import ru.yandex.practicum.filmorate.service.validator.UserFieldsValidator;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -40,4 +42,13 @@ public class ReviewService {
                                 String.format("Review with id %d does not exist", reviewId)
                         ));
     }
+
+    public List<Review> getReviews(Long filmId, int count) {
+        if (filmId == null) {
+            return reviewStorage.getAllReviews(count);
+        } else {
+            return reviewStorage.getFilmReviews(filmId, count);
+        }
+    }
+
 }
