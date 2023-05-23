@@ -6,7 +6,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
 import ru.yandex.practicum.filmorate.exception.UserNotExistException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.recommendations.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import javax.validation.Valid;
@@ -20,7 +22,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(value = "/users")
 public class UserController {
+
     private final UserService userService;
+    private final RecommendationsService recommendationsService;
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) throws InvalidUserFieldsException {
@@ -84,5 +88,10 @@ public class UserController {
     ) {
         log.debug("Got request to find common friends to users with id {} and {}", userId, otherUserId);
         return userService.getCommonFriends(userId, otherUserId);
+    }
+
+    @GetMapping("/{userId}/recommendations")
+    public List<Film> getRecommendations(@PathVariable(value = "userId") long userId) {
+        return recommendationsService.getRecommendations(userId);
     }
 }
