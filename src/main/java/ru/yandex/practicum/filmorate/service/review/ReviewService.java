@@ -51,4 +51,32 @@ public class ReviewService {
         }
     }
 
+    public void addLikeToReview(Long reviewId, Long userId) {
+        reviewFieldsValidator.checkIfPresentById(reviewId);
+        userFieldsValidator.checkIfPresentById(userId);
+
+        reviewStorage.addLikeToReview(reviewId, userId);
+    }
+
+    public void removeLikeFromReview(Long reviewId, Long userId) {
+        reviewFieldsValidator.checkIfPresentById(reviewId);
+        userFieldsValidator.checkIfPresentById(userId);
+
+        reviewStorage.removeLikeFromReview(reviewId, userId);
+    }
+
+    public void addDislikeToReview(Long reviewId, Long userId) {
+        reviewFieldsValidator.checkIfPresentById(reviewId);
+        userFieldsValidator.checkIfPresentById(userId);
+
+        reviewStorage.addDislikeToReview(reviewId, userId);
+    }
+
+    public void removeDislikeFromReview(Long reviewId, Long userId) {
+        reviewFieldsValidator.checkIfPresentById(reviewId);
+        userFieldsValidator.checkIfPresentById(userId);
+
+        reviewStorage.removeDislikeFromReview(reviewId, userId);
+    }
+
 }

@@ -92,7 +92,7 @@ public class ReviewRepository implements ReviewStorage {
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
                 "WHERE r.film_id = :filmId " +
                 "GROUP BY r.review_id, likes.review_id, dislikes.review_id " +
-                "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) " +
+                "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) DESC " +
                 "LIMIT :count";
         MapSqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("filmId", filmId)
@@ -114,7 +114,7 @@ public class ReviewRepository implements ReviewStorage {
                 "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
                 "GROUP BY r.review_id, likes.review_id, dislikes.review_id " +
-                "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) " +
+                "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) DESC " +
                 "LIMIT :count";
         MapSqlParameterSource namedParams = new MapSqlParameterSource("count", count);
 
@@ -123,6 +123,50 @@ public class ReviewRepository implements ReviewStorage {
         } catch (EmptyResultDataAccessException e) {
             return List.of();
         }
+    }
+
+    @Override
+    public void addLikeToReview(Long reviewId, Long userId) {
+        String sqlQuery = "MERGE INTO user_review_likes " +
+                "VALUES (:userId, :reviewId)";
+        MapSqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("reviewId", reviewId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+    }
+
+    @Override
+    public boolean removeLikeFromReview(Long reviewId, Long userId) {
+        String sqlQuery = "DELETE FROM user_review_likes " +
+                "WHERE review_id = :reviewId AND user_id = :userId";
+        MapSqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("reviewId", reviewId);
+
+        return jdbcTemplate.update(sqlQuery, namedParams) > 0;
+    }
+
+    @Override
+    public void addDislikeToReview(Long reviewId, Long userId) {
+        String sqlQuery = "MERGE INTO user_review_dislikes " +
+                "VALUES (:userId, :reviewId)";
+        MapSqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("reviewId", reviewId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+    }
+
+    @Override
+    public boolean removeDislikeFromReview(Long reviewId, Long userId) {
+        String sqlQuery = "DELETE FROM user_review_dislikes " +
+                "WHERE review_id = :reviewId AND user_id = :userId";
+        MapSqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("reviewId", reviewId);
+
+        return jdbcTemplate.update(sqlQuery, namedParams) > 0;
     }
 
     private Integer calculateUseful(Long reviewId) {

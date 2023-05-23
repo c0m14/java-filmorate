@@ -51,4 +51,41 @@ public class ReviewController {
         log.debug("Got request to get {} reviews to film with id {}", count, filmId);
         return reviewService.getReviews(filmId, count);
     }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLikeToReview(
+            @PathVariable(value = "id") @Min(1) Long reviewId,
+            @PathVariable(value = "userId") @Min(1) Long userId
+    ) {
+        log.debug("Got request to add like to review with id {} from user with id {}", reviewId, userId);
+        reviewService.addLikeToReview(reviewId, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLikeFromReview(
+            @PathVariable(value = "id") @Min(1) Long reviewId,
+            @PathVariable(value = "userId") @Min(1) Long userId
+    ) {
+        log.debug("Got request to remove like from user with id {} from review with id {}", userId, reviewId);
+        reviewService.removeLikeFromReview(reviewId, userId);
+    }
+
+    @PutMapping("/{id}/dislike/{userId}")
+    public void addDislikeToReview(
+            @PathVariable(value = "id") @Min(1) Long reviewId,
+            @PathVariable(value = "userId") @Min(1) Long userId
+    ) {
+        log.debug("Got request to add dislike to review with id {} from user with id {}", reviewId, userId);
+        reviewService.addDislikeToReview(reviewId, userId);
+    }
+
+    @DeleteMapping("/{id}/dislike/{userId}")
+    public void removeDisLikeFromReview(
+            @PathVariable(value = "id") @Min(1) Long reviewId,
+            @PathVariable(value = "userId") @Min(1) Long userId
+    ) {
+        log.debug("Got request to remove dislike from user with id {} from review with id {}", userId, reviewId);
+        reviewService.removeDislikeFromReview(reviewId, userId);
+    }
+
 }
