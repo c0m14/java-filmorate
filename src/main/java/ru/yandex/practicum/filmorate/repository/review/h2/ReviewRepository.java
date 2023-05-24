@@ -198,16 +198,6 @@ public class ReviewRepository implements ReviewStorage {
         }
     }
 
-    private Review mapRowToReview(ResultSet resultSet, int rowNum) throws SQLException {
-        return Review.builder()
-                .reviewId(resultSet.getLong("review_id"))
-                .userId(resultSet.getLong("user_id"))
-                .filmId(resultSet.getLong("film_id"))
-                .content(resultSet.getString("content"))
-                .isPositive(resultSet.getBoolean("is_positive"))
-                .build();
-    }
-
     private Review mapRowToReviewWithUseful(ResultSet resultSet, int rowNum) throws SQLException {
         return Review.builder()
                 .reviewId(resultSet.getLong("review_id"))
