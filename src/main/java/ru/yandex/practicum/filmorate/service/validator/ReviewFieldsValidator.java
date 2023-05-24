@@ -24,12 +24,7 @@ public class ReviewFieldsValidator {
                         "\"Id\" shouldn't be empty in update request"
                 );
             }
-            if (id <= 0) {
-                throw new InvalidReviewFieldsException(
-                        "id",
-                        String.format("\"Id\" isn't positive: %d", id)
-                );
-            }
+            checkIfPresentById(id);
         }
     }
 
