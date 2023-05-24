@@ -5,11 +5,10 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @Data
 @Builder
@@ -17,6 +16,7 @@ public class Review {
     @PositiveOrZero
     private Long reviewId;
     @NotBlank
+    @Size(max = 5000)
     private String content;
     @NotNull
     private Boolean isPositive;
