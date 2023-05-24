@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service.review;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ReviewLikeNotExistsException;
 import ru.yandex.practicum.filmorate.exception.ReviewNotExistsException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -63,7 +64,12 @@ public class ReviewService {
         reviewFieldsValidator.checkIfPresentById(reviewId);
         userFieldsValidator.checkIfPresentById(userId);
 
-        reviewStorage.removeLikeFromReview(reviewId, userId);
+        boolean isRecordFound = reviewStorage.removeLikeFromReview(reviewId, userId);
+        if (!isRecordFound) {
+            throw new ReviewLikeNotExistsException(
+                    String.format("There is no like from user with id %d to review with id %d", userId, reviewId)
+            );
+        }
     }
 
     public void addDislikeToReview(Long reviewId, Long userId) {
