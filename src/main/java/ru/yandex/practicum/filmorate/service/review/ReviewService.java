@@ -47,6 +47,7 @@ public class ReviewService {
         if (filmId == null) {
             return reviewStorage.getAllReviews(count);
         } else {
+            filmFieldsValidator.checkIfPresentById(filmId);
             return reviewStorage.getFilmReviews(filmId, count);
         }
     }
