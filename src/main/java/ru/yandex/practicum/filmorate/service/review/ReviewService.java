@@ -80,6 +80,7 @@ public class ReviewService {
     }
 
     public void deleteReview(Long reviewId) {
+        reviewFieldsValidator.checkIfPresentById(reviewId);
         reviewStorage.deleteReview(reviewId);
     }
 
