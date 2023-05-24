@@ -84,6 +84,13 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewDislikeNotExistException(ReviewDislikeNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewDislike record", e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseList handleConstraintViolationException(ConstraintViolationException e) {
         log.error(e.getMessage());
