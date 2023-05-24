@@ -67,15 +67,19 @@ public class ReviewRepository implements ReviewStorage {
 
     @Override
     public Optional<Review> getReviewById(Long reviewId) {
-        String sqlQuery = "SELECT review_id, user_id, film_id, content, is_positive " +
-                "FROM review " +
-                "WHERE review_id = :reviewId";
+        String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
+                "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
+                "FROM review AS r " +
+                "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
+                "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
+                "WHERE r.review_id = :reviewId " +
+                "GROUP BY r.review_id, likes.review_id, dislikes.review_id";
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
         Optional<Review> reviewOptional;
 
         try {
             reviewOptional = Optional.ofNullable(
-                    jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToReview)
+                    jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToReviewWithUseful)
             );
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
