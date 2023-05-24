@@ -22,9 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ReviewTest {
     private static final String HOST = "http://localhost:";
+    HttpHeaders applicationJsonHeaders;
     @Value(value = "${local.server.port}")
     private int port;
-    HttpHeaders applicationJsonHeaders;
     @Autowired
     private TestRestTemplate testRestTemplate;
     @Autowired
