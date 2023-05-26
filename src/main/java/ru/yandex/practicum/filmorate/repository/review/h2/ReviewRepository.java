@@ -73,7 +73,7 @@ public class ReviewRepository implements ReviewStorage {
                 "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
                 "WHERE r.review_id = :reviewId " +
-                "GROUP BY r.review_id, likes.review_id, dislikes.review_id";
+                "GROUP BY r.review_id ";
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
         Optional<Review> reviewOptional;
 
@@ -95,7 +95,7 @@ public class ReviewRepository implements ReviewStorage {
                 "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
                 "WHERE r.film_id = :filmId " +
-                "GROUP BY r.review_id, likes.review_id, dislikes.review_id " +
+                "GROUP BY r.review_id " +
                 "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) DESC " +
                 "LIMIT :count";
         MapSqlParameterSource namedParams = new MapSqlParameterSource()
@@ -117,7 +117,7 @@ public class ReviewRepository implements ReviewStorage {
                 "FROM review AS r " +
                 "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
-                "GROUP BY r.review_id, likes.review_id, dislikes.review_id " +
+                "GROUP BY r.review_id " +
                 "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) DESC " +
                 "LIMIT :count";
         MapSqlParameterSource namedParams = new MapSqlParameterSource("count", count);
