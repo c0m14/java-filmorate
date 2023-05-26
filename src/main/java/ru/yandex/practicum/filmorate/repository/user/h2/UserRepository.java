@@ -184,6 +184,17 @@ public class UserRepository implements UserStorage {
         return false;
     }
 
+    @Override
+    public void removeUserById(Long userId) {
+        String sqlQuery = "DELETE FROM users" +
+                "WHERE user_id = :userId";
+        SqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("userId", userId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+
+    }
+
     private Optional<FriendConfirmationStatus> getFriendshipStatus(Long userId, Long otherUserId) {
         String sqlQuery = "SELECT confirmation_status " +
                 "FROM user_friend " +

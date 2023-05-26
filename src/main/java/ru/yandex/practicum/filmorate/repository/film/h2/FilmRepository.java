@@ -183,6 +183,17 @@ public class FilmRepository implements FilmStorage {
         return films;
     }
 
+    @Override
+    public void removeFilmById(Long filmId) {
+        String sqlQuery = "DELETE FROM film" +
+                "WHERE film_id = :filmId";
+
+        SqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("filmId", filmId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+    }
+
     private void fetchAdditionalParamsToFilmsList(List<Film> films) {
         fetchGenresToFilms(films);
         fetchLikesToFilms(films);
