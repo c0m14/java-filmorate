@@ -2,24 +2,24 @@ package ru.yandex.practicum.filmorate.service.validator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.InvalidReviewFieldsException;
-import ru.yandex.practicum.filmorate.exception.ReviewNotExistsException;
+import ru.yandex.practicum.filmorate.exception.InvalidFilmReviewFieldsException;
+import ru.yandex.practicum.filmorate.exception.FilmReviewNotExistsException;
 import ru.yandex.practicum.filmorate.model.RequestType;
-import ru.yandex.practicum.filmorate.repository.review.ReviewStorage;
+import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
 
 @Component
 @RequiredArgsConstructor
-public class ReviewFieldsValidator {
-    private final ReviewStorage reviewStorage;
+public class FilmReviewFieldsValidator {
+    private final FilmReviewStorage filmReviewStorage;
 
     public void checkReviewId(Long id, RequestType requestType) {
         if (requestType.equals(RequestType.CREATE)) {
             if (id != null) {
-                throw new InvalidReviewFieldsException("Id", "\"Id\" shouldn't be sent while creation");
+                throw new InvalidFilmReviewFieldsException("Id", "\"Id\" shouldn't be sent while creation");
             }
         } else if (requestType.equals(RequestType.UPDATE)) {
             if (id == null) {
-                throw new InvalidReviewFieldsException(
+                throw new InvalidFilmReviewFieldsException(
                         "id",
                         "\"Id\" shouldn't be empty in update request"
                 );
@@ -29,8 +29,8 @@ public class ReviewFieldsValidator {
     }
 
     public void checkIfPresentById(Long reviewId) {
-        if (reviewStorage.getReviewById(reviewId).isEmpty()) {
-            throw new ReviewNotExistsException(
+        if (filmReviewStorage.getReviewById(reviewId).isEmpty()) {
+            throw new FilmReviewNotExistsException(
                     String.format("Review with id %d does not exist", reviewId)
             );
         }

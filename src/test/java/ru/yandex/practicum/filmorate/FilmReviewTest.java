@@ -9,9 +9,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.repository.review.ReviewStorage;
-import ru.yandex.practicum.filmorate.util.ReviewTestDataProducer;
+import ru.yandex.practicum.filmorate.model.FilmReview;
+import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
+import ru.yandex.practicum.filmorate.util.FilmReviewTestDataProducer;
 import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
 import java.net.URI;
@@ -20,7 +20,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ReviewTest {
+public class FilmReviewTest {
     private static final String HOST = "http://localhost:";
     HttpHeaders applicationJsonHeaders;
     @Value(value = "${local.server.port}")
@@ -28,11 +28,11 @@ public class ReviewTest {
     @Autowired
     private TestRestTemplate testRestTemplate;
     @Autowired
-    private ReviewTestDataProducer reviewTestDataProducer;
+    private FilmReviewTestDataProducer filmReviewTestDataProducer;
     @Autowired
     private TestDataProducer testDataProducer;
     @Autowired
-    private ReviewStorage reviewStorage;
+    private FilmReviewStorage filmReviewStorage;
 
     private URI reviewsUrl;
 
@@ -87,24 +87,24 @@ public class ReviewTest {
 
     @Test
     public void shouldCreateReview() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
 
-        Review createdReview = testRestTemplate.postForObject(reviewsUrl, initialReview, Review.class);
-        Review savedReview = reviewStorage.getReviewById(createdReview.getReviewId()).get();
+        FilmReview createdFilmReview = testRestTemplate.postForObject(reviewsUrl, initialFilmReview, FilmReview.class);
+        FilmReview savedFilmReview = filmReviewStorage.getReviewById(createdFilmReview.getReviewId()).get();
 
-        assertNotNull(savedReview, "Review not created");
-        assertEquals(createdReview.getReviewId(), savedReview.getReviewId(), "Created review id is wrong");
-        assertEquals(initialReview.getFilmId(), savedReview.getFilmId(), "Film id is wrong");
-        assertEquals(initialReview.getUserId(), savedReview.getUserId(), "User id is wrong");
-        assertEquals(initialReview.getContent(), savedReview.getContent(), "Content is wrong");
-        assertEquals(initialReview.getIsPositive(), savedReview.getIsPositive(), "IsPositive is wrong");
+        assertNotNull(savedFilmReview, "Review not created");
+        assertEquals(createdFilmReview.getReviewId(), savedFilmReview.getReviewId(), "Created review id is wrong");
+        assertEquals(initialFilmReview.getFilmId(), savedFilmReview.getFilmId(), "Film id is wrong");
+        assertEquals(initialFilmReview.getUserId(), savedFilmReview.getUserId(), "User id is wrong");
+        assertEquals(initialFilmReview.getContent(), savedFilmReview.getContent(), "Content is wrong");
+        assertEquals(initialFilmReview.getIsPositive(), savedFilmReview.getIsPositive(), "IsPositive is wrong");
     }
 
     @Test
     public void shouldReturn400IfIdSendingWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setReviewId(1L);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setReviewId(1L);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -117,9 +117,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserDoesNotExistWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setUserId(999L);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setUserId(999L);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -132,9 +132,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setUserId(-1L);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setUserId(-1L);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -147,9 +147,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfUserIdIsNullWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setUserId(null);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setUserId(null);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -162,9 +162,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfFilmDoesNotExistWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setFilmId(999L);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setFilmId(999L);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -177,9 +177,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfFilmIdIsNegativeWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setFilmId(-1L);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setFilmId(-1L);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -192,9 +192,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfFilmIdIsNullWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setFilmId(null);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setFilmId(null);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -207,9 +207,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfContentIsNullWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setContent(null);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setContent(null);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -222,9 +222,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfContentLengthOverLimitWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setContent("A".repeat(5001));
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setContent("A".repeat(5001));
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -237,9 +237,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfContentIsBlankWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setContent("  ");
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setContent("  ");
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -252,9 +252,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfIsPositiveIsNullWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setIsPositive(null);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setIsPositive(null);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -267,36 +267,36 @@ public class ReviewTest {
 
     @Test
     public void shouldIgnoreUsefulWhenReviewIsCreated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setUseful(20);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setUseful(20);
 
-        Review createdReview = testRestTemplate.postForObject(reviewsUrl, initialReview, Review.class);
-        Review savedReview = reviewStorage.getReviewById(createdReview.getReviewId()).get();
+        FilmReview createdFilmReview = testRestTemplate.postForObject(reviewsUrl, initialFilmReview, FilmReview.class);
+        FilmReview savedFilmReview = filmReviewStorage.getReviewById(createdFilmReview.getReviewId()).get();
 
-        assertEquals(0, savedReview.getUseful(), "Should not use field");
+        assertEquals(0, savedFilmReview.getUseful(), "Should not use field");
     }
 
     // =============================== PUT /reviews ======================================
 
     @Test
     public void shouldUpdateReview() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setContent("Updated review content");
-        initialReview.setIsPositive(false);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setContent("Updated review content");
+        initialFilmReview.setIsPositive(false);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
-        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, Review.class);
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
+        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, FilmReview.class);
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
 
-        assertEquals(false, updatedReview.getIsPositive(), "Field is not updated");
-        assertEquals("Updated review content", updatedReview.getContent(), "Field is not updated");
+        assertEquals(false, updatedFilmReview.getIsPositive(), "Field is not updated");
+        assertEquals("Updated review content", updatedFilmReview.getContent(), "Field is not updated");
     }
 
     @Test
     public void shouldReturn400IfReviewIdAbsentWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -310,9 +310,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfReviewIdIsNegativeWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setReviewId(-1L);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setReviewId(-1L);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -326,9 +326,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfReviewIsNotExistWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        initialReview.setReviewId(999L);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        initialFilmReview.setReviewId(999L);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -342,39 +342,39 @@ public class ReviewTest {
 
     @Test
     public void shouldIgnoreUserIdWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long initialUserId = initialReview.getUserId();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setUserId(null);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long initialUserId = initialFilmReview.getUserId();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setUserId(null);
 
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
-        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, Review.class);
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(initialUserId, updatedReview.getUserId(), "User id has been changed");
+        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, FilmReview.class);
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(initialUserId, updatedFilmReview.getUserId(), "User id has been changed");
     }
 
     @Test
     public void shouldIgnoreFilmIdWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long initialFilmId = initialReview.getFilmId();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setUserId(null);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long initialFilmId = initialFilmReview.getFilmId();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setUserId(null);
 
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
-        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, Review.class);
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(initialFilmId, updatedReview.getFilmId(), "Film id has been changed");
+        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, FilmReview.class);
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(initialFilmId, updatedFilmReview.getFilmId(), "Film id has been changed");
     }
 
     @Test
     public void shouldReturn400IfContentLengthOverLimitWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setReviewId(savedReviewId);
-        initialReview.setContent("A".repeat(5001));
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setReviewId(savedReviewId);
+        initialFilmReview.setContent("A".repeat(5001));
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -388,11 +388,11 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfContentIsAbsentWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setReviewId(savedReviewId);
-        initialReview.setContent(null);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setReviewId(savedReviewId);
+        initialFilmReview.setContent(null);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -406,11 +406,11 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfContentIsBlankWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setReviewId(savedReviewId);
-        initialReview.setContent("   ");
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setReviewId(savedReviewId);
+        initialFilmReview.setContent("   ");
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -424,11 +424,11 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfIsPositiveIsAbsentWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setReviewId(savedReviewId);
-        initialReview.setIsPositive(null);
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setReviewId(savedReviewId);
+        initialFilmReview.setIsPositive(null);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 reviewsUrl,
@@ -442,24 +442,24 @@ public class ReviewTest {
 
     @Test
     public void shouldIgnoreUsefulWhenReviewIsUpdated() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        int initialUseful = initialReview.getUseful();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setUseful(999);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        int initialUseful = initialFilmReview.getUseful();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setUseful(999);
 
-        HttpEntity<Review> entity = new HttpEntity<>(initialReview, applicationJsonHeaders);
+        HttpEntity<FilmReview> entity = new HttpEntity<>(initialFilmReview, applicationJsonHeaders);
 
-        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, Review.class);
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(initialUseful, updatedReview.getUseful(), "Useful has been changed");
+        testRestTemplate.exchange(reviewsUrl, HttpMethod.PUT, entity, FilmReview.class);
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(initialUseful, updatedFilmReview.getUseful(), "Useful has been changed");
     }
 
     // =============================== DELETE /reviews/{id} ======================================
 
     @Test
     public void shouldDeleteReviewById() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         testRestTemplate.exchange(
                 getDeleteOrGetByURI(savedReviewId),
@@ -468,7 +468,7 @@ public class ReviewTest {
                 String.class
         );
 
-        assertTrue(reviewStorage.getReviewById(savedReviewId).isEmpty(), "Review is not deleted");
+        assertTrue(filmReviewStorage.getReviewById(savedReviewId).isEmpty(), "Review is not deleted");
     }
 
     @Test
@@ -501,18 +501,18 @@ public class ReviewTest {
 
     @Test
     public void shouldGetReviewById() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
-        initialReview.setReviewId(savedReviewId);
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        initialFilmReview.setReviewId(savedReviewId);
 
-        Review gottenReview = testRestTemplate.exchange(
+        FilmReview gottenFilmReview = testRestTemplate.exchange(
                 getDeleteOrGetByURI(savedReviewId),
                 HttpMethod.GET,
                 null,
-                Review.class
+                FilmReview.class
         ).getBody();
 
-        assertEquals(initialReview, gottenReview, "Requested review not equals initial review");
+        assertEquals(initialFilmReview, gottenFilmReview, "Requested review not equals initial review");
     }
 
     @Test
@@ -545,102 +545,102 @@ public class ReviewTest {
 
     @Test
     public void shouldGetAllReviewsForFilmWithCountLimit() {
-        Long filmId = reviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(11);
+        Long filmId = filmReviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(11);
 
-        List<Review> requestedReviews = testRestTemplate.exchange(
+        List<FilmReview> requestedFilmReviews = testRestTemplate.exchange(
                 getGetReviewsByFilmIdWithCountURI(filmId, 5),
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Review>>() {
+                new ParameterizedTypeReference<List<FilmReview>>() {
                 }
         ).getBody();
 
-        assertEquals(5, requestedReviews.size(), "Reviews number is wrong");
-        assertEquals(filmId, requestedReviews.get(0).getFilmId(), "Review is not for requested film");
-        assertEquals(11, requestedReviews.get(0).getUseful(), "Review sort is wrong");
+        assertEquals(5, requestedFilmReviews.size(), "Reviews number is wrong");
+        assertEquals(filmId, requestedFilmReviews.get(0).getFilmId(), "Review is not for requested film");
+        assertEquals(11, requestedFilmReviews.get(0).getUseful(), "Review sort is wrong");
     }
 
     @Test
     public void shouldGetAllReviewsForFilmWithoutCountLimit() {
-        Long filmId = reviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(11);
+        Long filmId = filmReviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(11);
 
-        List<Review> requestedReviews = testRestTemplate.exchange(
+        List<FilmReview> requestedFilmReviews = testRestTemplate.exchange(
                 getGetReviewsByFilmIdNoCountURI(filmId),
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Review>>() {
+                new ParameterizedTypeReference<List<FilmReview>>() {
                 }
         ).getBody();
 
-        assertEquals(10, requestedReviews.size(), "Reviews number is wrong");
-        assertEquals(filmId, requestedReviews.get(0).getFilmId(), "Review is not for requested film");
-        assertEquals(11, requestedReviews.get(0).getUseful(), "Review sort is wrong");
+        assertEquals(10, requestedFilmReviews.size(), "Reviews number is wrong");
+        assertEquals(filmId, requestedFilmReviews.get(0).getFilmId(), "Review is not for requested film");
+        assertEquals(11, requestedFilmReviews.get(0).getUseful(), "Review sort is wrong");
     }
 
     @Test
     public void shouldReturnEmptyListIfNoReviewsForFilm() {
         Long filmId = testDataProducer.addDefaultFilmToDB();
 
-        List<Review> requestedReviews = testRestTemplate.exchange(
+        List<FilmReview> requestedFilmReviews = testRestTemplate.exchange(
                 getGetReviewsByFilmIdWithCountURI(filmId, 5),
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Review>>() {
+                new ParameterizedTypeReference<List<FilmReview>>() {
                 }
         ).getBody();
 
-        assertTrue(requestedReviews.isEmpty(), "Wrong review list size");
+        assertTrue(requestedFilmReviews.isEmpty(), "Wrong review list size");
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldGetAllReviewsWithCountLimit() {
-        reviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
-        reviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
+        filmReviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
+        filmReviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
 
-        List<Review> requestedReviews = testRestTemplate.exchange(
+        List<FilmReview> requestedFilmReviews = testRestTemplate.exchange(
                 getGetReviewsNoFilmIdWithCountURI(5),
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Review>>() {
+                new ParameterizedTypeReference<List<FilmReview>>() {
                 }
         ).getBody();
 
-        assertEquals(5, requestedReviews.size(), "Reviews number is wrong");
-        assertEquals(10, requestedReviews.get(0).getUseful(), "Review sort is wrong");
+        assertEquals(5, requestedFilmReviews.size(), "Reviews number is wrong");
+        assertEquals(10, requestedFilmReviews.get(0).getUseful(), "Review sort is wrong");
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldGetAllReviewsWithoutCountLimit() {
-        reviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
-        reviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
+        filmReviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
+        filmReviewTestDataProducer.createReviewsWithUsefulToFilmAndReturnFilmId(10);
 
-        List<Review> requestedReviews = testRestTemplate.exchange(
+        List<FilmReview> requestedFilmReviews = testRestTemplate.exchange(
                 reviewsUrl,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Review>>() {
+                new ParameterizedTypeReference<List<FilmReview>>() {
                 }
         ).getBody();
 
-        assertEquals(10, requestedReviews.size(), "Reviews number is wrong");
-        assertEquals(10, requestedReviews.get(0).getUseful(), "Review sort is wrong");
+        assertEquals(10, requestedFilmReviews.size(), "Reviews number is wrong");
+        assertEquals(10, requestedFilmReviews.get(0).getUseful(), "Review sort is wrong");
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void shouldReturnEmptyListIfNoReviewsExist() {
 
-        List<Review> requestedReviews = testRestTemplate.exchange(
+        List<FilmReview> requestedFilmReviews = testRestTemplate.exchange(
                 reviewsUrl,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Review>>() {
+                new ParameterizedTypeReference<List<FilmReview>>() {
                 }
         ).getBody();
 
-        assertTrue(requestedReviews.isEmpty(), "Wrong review list size");
+        assertTrue(requestedFilmReviews.isEmpty(), "Wrong review list size");
     }
 
     @Test
@@ -671,9 +671,9 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn400IfCountIsNegativeWhenGettingReviewForFilm() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        reviewStorage.addReview(initialReview).getReviewId();
-        Long filmId = initialReview.getFilmId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        filmReviewStorage.addReview(initialFilmReview).getReviewId();
+        Long filmId = initialFilmReview.getFilmId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(
                 getGetReviewsByFilmIdWithCountURI(filmId, -5),
@@ -689,8 +689,8 @@ public class ReviewTest {
 
     @Test
     public void shouldIncreaseUsefulAfterLike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
 
         testRestTemplate.exchange(getReviewLikesURI(savedReviewId, userId),
@@ -699,14 +699,14 @@ public class ReviewTest {
                 String.class
         );
 
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(1, updatedReview.getUseful(), "Useful is wrong");
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(1, updatedFilmReview.getUseful(), "Useful is wrong");
     }
 
     @Test
     public void shouldNotIncreaseUsefulAfterLikeFromSameUser() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
         testRestTemplate.exchange(getReviewLikesURI(savedReviewId, userId),
                 HttpMethod.PUT,
@@ -720,14 +720,14 @@ public class ReviewTest {
                 String.class
         );
 
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(1, updatedReview.getUseful(), "Useful should not been increased");
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(1, updatedFilmReview.getUseful(), "Useful should not been increased");
     }
 
     @Test
     public void shouldReturn404IfUserNotExistWhenAddingLike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewLikesURI(savedReviewId, 999L),
                 HttpMethod.PUT,
@@ -740,8 +740,8 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenAddingLike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewLikesURI(savedReviewId, -1L),
                 HttpMethod.PUT,
@@ -782,10 +782,10 @@ public class ReviewTest {
 
     @Test
     public void shouldDecreaseUsefulAfterLikeDelete() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
-        reviewStorage.addLikeToReview(savedReviewId, userId);
+        filmReviewStorage.addLikeToReview(savedReviewId, userId);
 
         testRestTemplate.exchange(getReviewLikesURI(savedReviewId, userId),
                 HttpMethod.DELETE,
@@ -793,14 +793,14 @@ public class ReviewTest {
                 String.class
         );
 
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(0, updatedReview.getUseful(), "Useful is wrong");
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(0, updatedFilmReview.getUseful(), "Useful is wrong");
     }
 
     @Test
     public void shouldReturn404IfLikeNotExistWhenDeletingLike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewLikesURI(savedReviewId, userId),
@@ -814,8 +814,8 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserNotExistWhenDeletingLike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewLikesURI(savedReviewId, 999L),
                 HttpMethod.DELETE,
@@ -828,8 +828,8 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenDeletingLike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewLikesURI(savedReviewId, -1L),
                 HttpMethod.DELETE,
@@ -870,10 +870,10 @@ public class ReviewTest {
 
     @Test
     public void shouldDecreaseUsefulAfterDislike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
-        reviewStorage.addLikeToReview(savedReviewId, userId);
+        filmReviewStorage.addLikeToReview(savedReviewId, userId);
 
         testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, userId),
                 HttpMethod.PUT,
@@ -881,14 +881,14 @@ public class ReviewTest {
                 String.class
         );
 
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(0, updatedReview.getUseful(), "Useful is wrong");
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(0, updatedFilmReview.getUseful(), "Useful is wrong");
     }
 
     @Test
     public void shouldNotDecreaseUsefulAfterDislikeFromSameUser() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
         testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, userId),
                 HttpMethod.PUT,
@@ -902,14 +902,14 @@ public class ReviewTest {
                 String.class
         );
 
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(-1, updatedReview.getUseful(), "Useful should not been increased");
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(-1, updatedFilmReview.getUseful(), "Useful should not been increased");
     }
 
     @Test
     public void shouldReturn404IfUserNotExistWhenAddingDislike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, 999L),
                 HttpMethod.PUT,
@@ -922,8 +922,8 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenAddingDislike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, -1L),
                 HttpMethod.PUT,
@@ -964,10 +964,10 @@ public class ReviewTest {
 
     @Test
     public void shouldDecreaseUsefulAfterDislikeDelete() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
-        reviewStorage.addDislikeToReview(savedReviewId, userId);
+        filmReviewStorage.addDislikeToReview(savedReviewId, userId);
 
         testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, userId),
                 HttpMethod.DELETE,
@@ -975,14 +975,14 @@ public class ReviewTest {
                 String.class
         );
 
-        Review updatedReview = reviewStorage.getReviewById(savedReviewId).get();
-        assertEquals(0, updatedReview.getUseful(), "Useful is wrong");
+        FilmReview updatedFilmReview = filmReviewStorage.getReviewById(savedReviewId).get();
+        assertEquals(0, updatedFilmReview.getUseful(), "Useful is wrong");
     }
 
     @Test
     public void shouldReturn404IfDislikeNotExistWhenDeletingLike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
         Long userId = testDataProducer.addDefaultUserToDB();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, userId),
@@ -996,8 +996,8 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserNotExistWhenDeletingDislike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, 999L),
                 HttpMethod.DELETE,
@@ -1010,8 +1010,8 @@ public class ReviewTest {
 
     @Test
     public void shouldReturn404IfUserIdIsNegativeWhenDeletingDislike() {
-        Review initialReview = reviewTestDataProducer.getValidPositiveReview();
-        Long savedReviewId = reviewStorage.addReview(initialReview).getReviewId();
+        FilmReview initialFilmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long savedReviewId = filmReviewStorage.addReview(initialFilmReview).getReviewId();
 
         ResponseEntity<String> response = testRestTemplate.exchange(getReviewDislikesURI(savedReviewId, -1L),
                 HttpMethod.DELETE,

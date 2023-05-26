@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.controller.review;
+package ru.yandex.practicum.filmorate.controller.filmReview;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.service.review.ReviewService;
+import ru.yandex.practicum.filmorate.model.FilmReview;
+import ru.yandex.practicum.filmorate.service.filmReview.FilmReviewService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -16,21 +16,21 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 @RequestMapping("/reviews")
-public class ReviewController {
-    private final ReviewService reviewService;
+public class FilmReviewController {
+    private final FilmReviewService filmReviewService;
 
     @PostMapping
-    public Review addReview(@Valid @RequestBody Review review) {
+    public FilmReview addReview(@Valid @RequestBody FilmReview filmReview) {
         log.debug("Got request to add review {} to film with id {} from user with id {}",
-                review, review.getFilmId(), review.getUserId());
-        return reviewService.addReview(review);
+                filmReview, filmReview.getFilmId(), filmReview.getUserId());
+        return filmReviewService.addReview(filmReview);
     }
 
     @PutMapping
-    public Review updateReview(@Valid @RequestBody Review review) {
-        log.debug("Got request to update review {}", review);
+    public FilmReview updateReview(@Valid @RequestBody FilmReview filmReview) {
+        log.debug("Got request to update review {}", filmReview);
 
-        return reviewService.updateReview(review);
+        return filmReviewService.updateReview(filmReview);
     }
 
     @DeleteMapping("/{id}")
@@ -38,26 +38,26 @@ public class ReviewController {
             @PathVariable(value = "id") Long reviewId
     ) {
         log.debug("Got request to delete review with id {}", reviewId);
-        reviewService.deleteReview(reviewId);
+        filmReviewService.deleteReview(reviewId);
     }
 
     @GetMapping("/{id}")
-    public Review getReviewById(
+    public FilmReview getReviewById(
             @Valid
             @PathVariable("id") Long reviewId
     ) {
         log.debug("Got request to get review with id {}", reviewId);
 
-        return reviewService.getReviewById(reviewId);
+        return filmReviewService.getReviewById(reviewId);
     }
 
     @GetMapping
-    public List<Review> getReviews(
+    public List<FilmReview> getReviews(
             @RequestParam(value = "filmId", required = false) Long filmId,
             @RequestParam(value = "count", defaultValue = "10") @Min(1) int count
     ) {
         log.debug("Got request to get {} reviews to film with id {}", count, filmId);
-        return reviewService.getReviews(filmId, count);
+        return filmReviewService.getReviews(filmId, count);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -66,7 +66,7 @@ public class ReviewController {
             @PathVariable(value = "userId") Long userId
     ) {
         log.debug("Got request to add like to review with id {} from user with id {}", reviewId, userId);
-        reviewService.addLikeToReview(reviewId, userId);
+        filmReviewService.addLikeToReview(reviewId, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
@@ -75,7 +75,7 @@ public class ReviewController {
             @PathVariable(value = "userId") Long userId
     ) {
         log.debug("Got request to remove like from user with id {} from review with id {}", userId, reviewId);
-        reviewService.removeLikeFromReview(reviewId, userId);
+        filmReviewService.removeLikeFromReview(reviewId, userId);
     }
 
     @PutMapping("/{id}/dislike/{userId}")
@@ -84,7 +84,7 @@ public class ReviewController {
             @PathVariable(value = "userId") Long userId
     ) {
         log.debug("Got request to add dislike to review with id {} from user with id {}", reviewId, userId);
-        reviewService.addDislikeToReview(reviewId, userId);
+        filmReviewService.addDislikeToReview(reviewId, userId);
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
@@ -93,7 +93,7 @@ public class ReviewController {
             @PathVariable(value = "userId") Long userId
     ) {
         log.debug("Got request to remove dislike from user with id {} from review with id {}", userId, reviewId);
-        reviewService.removeDislikeFromReview(reviewId, userId);
+        filmReviewService.removeDislikeFromReview(reviewId, userId);
     }
 
 }

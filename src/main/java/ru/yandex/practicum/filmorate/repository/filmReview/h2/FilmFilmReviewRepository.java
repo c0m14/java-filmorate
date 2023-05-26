@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.repository.review.h2;
+package ru.yandex.practicum.filmorate.repository.filmReview.h2;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,9 +9,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.exception.ReviewNotExistsException;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.repository.review.ReviewStorage;
+import ru.yandex.practicum.filmorate.exception.FilmReviewNotExistsException;
+import ru.yandex.practicum.filmorate.model.FilmReview;
+import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,51 +22,51 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class ReviewRepository implements ReviewStorage {
+public class FilmFilmReviewRepository implements FilmReviewStorage {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public Review addReview(Review review) {
+    public FilmReview addReview(FilmReview filmReview) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate.getJdbcTemplate())
                 .withTableName("review")
                 .usingGeneratedKeyColumns("review_id");
 
-        Long reviewId = simpleJdbcInsert.executeAndReturnKey(review.mapToDb()).longValue();
-        review.setReviewId(reviewId);
+        Long reviewId = simpleJdbcInsert.executeAndReturnKey(filmReview.mapToDb()).longValue();
+        filmReview.setReviewId(reviewId);
 
-        return review;
+        return filmReview;
     }
 
     @Override
     @Transactional
-    public Review updateReview(Review review) {
-        Long reviewId = review.getReviewId();
+    public FilmReview updateReview(FilmReview filmReview) {
+        Long reviewId = filmReview.getReviewId();
         String sqlQuery = "UPDATE review " +
                 "SET content = :content, is_positive = :isPositive " +
                 "WHERE review_id = :reviewId";
         MapSqlParameterSource namedParams = new MapSqlParameterSource()
-                .addValue("content", review.getContent())
-                .addValue("isPositive", review.getIsPositive())
-                .addValue("reviewId", review.getReviewId());
+                .addValue("content", filmReview.getContent())
+                .addValue("isPositive", filmReview.getIsPositive())
+                .addValue("reviewId", filmReview.getReviewId());
 
         try {
             jdbcTemplate.update(sqlQuery, namedParams);
         } catch (DataIntegrityViolationException e) {
-            throw new ReviewNotExistsException(
-                    String.format("Review with id %d does not exist", review.getReviewId())
+            throw new FilmReviewNotExistsException(
+                    String.format("Review with id %d does not exist", filmReview.getReviewId())
             );
         }
 
         //Возвращаем отзыв из БД, так как в полученном могут быть некорректные поля
-        Review reviewFromDb = getReviewById(reviewId).get();
-        reviewFromDb.setUseful(calculateUseful(reviewId));
+        FilmReview filmReviewFromDb = getReviewById(reviewId).get();
+        filmReviewFromDb.setUseful(calculateUseful(reviewId));
 
-        return reviewFromDb;
+        return filmReviewFromDb;
     }
 
     @Override
-    public Optional<Review> getReviewById(Long reviewId) {
+    public Optional<FilmReview> getReviewById(Long reviewId) {
         String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
                 "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
                 "FROM review AS r " +
@@ -75,7 +75,7 @@ public class ReviewRepository implements ReviewStorage {
                 "WHERE r.review_id = :reviewId " +
                 "GROUP BY r.review_id ";
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
-        Optional<Review> reviewOptional;
+        Optional<FilmReview> reviewOptional;
 
         try {
             reviewOptional = Optional.ofNullable(
@@ -88,7 +88,7 @@ public class ReviewRepository implements ReviewStorage {
     }
 
     @Override
-    public List<Review> getFilmReviews(Long filmId, int count) {
+    public List<FilmReview> getFilmReviews(Long filmId, int count) {
         String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
                 "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
                 "FROM review AS r " +
@@ -111,7 +111,7 @@ public class ReviewRepository implements ReviewStorage {
     }
 
     @Override
-    public List<Review> getAllReviews(int count) {
+    public List<FilmReview> getAllReviews(int count) {
         String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
                 "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
                 "FROM review AS r " +
@@ -198,8 +198,8 @@ public class ReviewRepository implements ReviewStorage {
         }
     }
 
-    private Review mapRowToReviewWithUseful(ResultSet resultSet, int rowNum) throws SQLException {
-        return Review.builder()
+    private FilmReview mapRowToReviewWithUseful(ResultSet resultSet, int rowNum) throws SQLException {
+        return FilmReview.builder()
                 .reviewId(resultSet.getLong("review_id"))
                 .userId(resultSet.getLong("user_id"))
                 .filmId(resultSet.getLong("film_id"))

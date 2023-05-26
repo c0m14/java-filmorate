@@ -2,23 +2,23 @@ package ru.yandex.practicum.filmorate.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.repository.review.ReviewStorage;
+import ru.yandex.practicum.filmorate.model.FilmReview;
+import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class ReviewTestDataProducer {
-    private final ReviewStorage reviewStorage;
+public class FilmReviewTestDataProducer {
+    private final FilmReviewStorage filmReviewStorage;
     private final TestDataProducer testDataProducer;
 
-    public Review getValidPositiveReview() {
+    public FilmReview getValidPositiveReview() {
         Long userId = testDataProducer.addDefaultUserToDB();
         Long filmId = testDataProducer.addDefaultFilmToDB();
 
-        return Review.builder()
+        return FilmReview.builder()
                 .filmId(filmId)
                 .userId(userId)
                 .content("Good")
@@ -37,8 +37,8 @@ public class ReviewTestDataProducer {
         }
 
         for (Long userId : usersIds) {
-            reviewStorage.addReview(
-                    Review.builder()
+            filmReviewStorage.addReview(
+                    FilmReview.builder()
                             .filmId(filmId)
                             .userId(userId)
                             .content("Some content")
@@ -47,11 +47,11 @@ public class ReviewTestDataProducer {
             );
         }
 
-        List<Review> reviews = reviewStorage.getFilmReviews(filmId, reviewsNumber);
+        List<FilmReview> filmReviews = filmReviewStorage.getFilmReviews(filmId, reviewsNumber);
 
-        for (Review review : reviews) {
+        for (FilmReview filmReview : filmReviews) {
             for (Long usersId : usersIds) {
-                reviewStorage.addLikeToReview(review.getReviewId(), usersId);
+                filmReviewStorage.addLikeToReview(filmReview.getReviewId(), usersId);
             }
             usersIds.remove(usersIds.size() - 1);
         }

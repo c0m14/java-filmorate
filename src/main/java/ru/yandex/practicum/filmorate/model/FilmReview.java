@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Data
 @Builder
-public class Review {
+public class FilmReview {
     @PositiveOrZero
     private Long reviewId;
     @NotBlank
