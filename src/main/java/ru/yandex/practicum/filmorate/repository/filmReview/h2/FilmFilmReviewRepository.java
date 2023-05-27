@@ -68,12 +68,12 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
     @Override
     public Optional<FilmReview> getReviewById(Long reviewId) {
         String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
-                "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
+                "COUNT(DISTINCT(LIKES.USER_ID)) - COUNT(DISTINCT(DISLIKES.USER_ID)) AS useful " +
                 "FROM review AS r " +
                 "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
                 "WHERE r.review_id = :reviewId " +
-                "GROUP BY r.review_id ";
+                "GROUP BY r.review_id";
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
         Optional<FilmReview> reviewOptional;
 
@@ -90,13 +90,13 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
     @Override
     public List<FilmReview> getFilmReviews(Long filmId, int count) {
         String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
-                "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
+                "COUNT(DISTINCT(LIKES.USER_ID)) - COUNT(DISTINCT(DISLIKES.USER_ID)) AS useful " +
                 "FROM review AS r " +
                 "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
                 "WHERE r.film_id = :filmId " +
                 "GROUP BY r.review_id " +
-                "ORDER BY COUNT(likes.user_id) - COUNT(dislikes.user_id) DESC " +
+                "ORDER BY COUNT(DISTINCT(LIKES.USER_ID)) - COUNT(DISTINCT(DISLIKES.USER_ID)) DESC " +
                 "LIMIT :count";
         MapSqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("filmId", filmId)
@@ -113,7 +113,7 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
     @Override
     public List<FilmReview> getAllReviews(int count) {
         String sqlQuery = "SELECT r.review_id, r.user_id, r.film_id, r.content, r.is_positive, " +
-                "COUNT(likes.user_id) - COUNT(dislikes.user_id) AS useful " +
+                "COUNT(DISTINCT(LIKES.USER_ID)) - COUNT(DISTINCT(DISLIKES.USER_ID)) AS useful " +
                 "FROM review AS r " +
                 "LEFT JOIN user_review_likes AS likes ON likes.review_id = r.review_id " +
                 "LEFT JOIN user_review_dislikes AS dislikes ON dislikes.review_id = r.review_id " +
@@ -183,11 +183,10 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
     }
 
     private Integer calculateUseful(Long reviewId) {
-        String sqlQuery = "SELECT COUNT(likes.user_id) - COUNT(dislikes.user_id) " +
+        String sqlQuery = "SELECT COUNT(DISTINCT(LIKES.USER_ID)) - COUNT(DISTINCT(DISLIKES.USER_ID)) " +
                 "FROM user_review_likes AS likes " +
                 "INNER JOIN user_review_dislikes AS dislikes ON likes.review_id = dislikes.review_id " +
-                "WHERE likes.review_id = :reviewId AND dislikes.review_id = :reviewId " +
-                "GROUP BY likes.review_id, dislikes.review_id";
+                "WHERE likes.review_id = :reviewId AND dislikes.review_id = :reviewId ";
 
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
 
