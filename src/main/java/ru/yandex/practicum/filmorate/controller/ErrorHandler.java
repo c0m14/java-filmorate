@@ -44,9 +44,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIncorrectParameterException(final IncorrectParameterException e) {
-        return new ErrorResponse("sortBy",
-                String.format("Ошибка с полем \"%s\".", e.getParameter())
-        );
+        return new ErrorResponse(e.getParameter(), e.getMessage());
     }
 
     @ExceptionHandler
@@ -117,13 +115,6 @@ public class ErrorHandler {
                         ))
                         .collect(Collectors.toList())
         );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleInvalidRequestParametersException(InvalidRequestParameterException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("by", e.getMessage());
     }
 
     @Getter

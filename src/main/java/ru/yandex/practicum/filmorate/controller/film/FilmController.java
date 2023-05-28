@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
-import ru.yandex.practicum.filmorate.exception.InvalidRequestParameterException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
@@ -18,6 +17,8 @@ import java.util.List;
 
 import static ru.yandex.practicum.filmorate.model.Constants.SORTS;
 import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_YEAR;
+import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_TITLE;
+import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_DIRECTOR;
 
 @Slf4j
 @RestController
@@ -98,7 +99,7 @@ public class FilmController {
             @RequestParam(defaultValue = SORT_BY_YEAR, required = false) String sortBy
     ) {
         if (!SORTS.contains(sortBy)) {
-            throw new IncorrectParameterException("sortBy");
+            throw new IncorrectParameterException("sortBy", "Should be year or likes");
         }
         log.debug("Got request to get films by director: {}", directorId);
         return filmService.getFilmsByDirector(directorId, sortBy);
@@ -119,20 +120,19 @@ public class FilmController {
         log.debug(stringBuilder.toString());
 
         if (by == null || by.isEmpty()) {
-            by = List.of("title", "director");
+            by = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
         } else if (by.contains("title")) {
             if (by.contains("director")) {
-                by = List.of("title", "director");
+                by = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
             } else {
-                by = List.of("title");
+                by = List.of(SEARCH_BY_TITLE);
             }
         } else if (by.contains("director")) {
-            by = List.of("director");
+            by = List.of(SEARCH_BY_DIRECTOR);
         } else {
-            throw new InvalidRequestParameterException("Request parameter by should be title, director or both");
+            throw new IncorrectParameterException("By", "Should be title, director or both");
         }
 
         return filmService.searchFilms(query.toLowerCase(), by);
     }
-
 }

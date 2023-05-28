@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service.film;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_TITLE;
+import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_DIRECTOR;
 
 @Service
 public class FilmService {
@@ -102,12 +104,12 @@ public class FilmService {
 
     private boolean searchFilter(CataloguedFilm cataloguedFilm, String query, List<String> by) {
         boolean result = false;
-        if (by.contains("title")) {
+        if (by.contains(SEARCH_BY_TITLE)) {
             if (cataloguedFilm.getFilmName().contains(query)) {
                 result = true;
             }
         }
-        if (by.contains("director")) {
+        if (by.contains(SEARCH_BY_DIRECTOR)) {
             if (cataloguedFilm.getFilmDirectors().stream().anyMatch(director -> director.contains(query))) {
                 result = true;
             }
@@ -117,5 +119,4 @@ public class FilmService {
     private void initiateFilmCatalogue() {
         filmStorage.initiateFilmCatalogue(filmCatalogue);
     }
-
 }

@@ -14,8 +14,7 @@ public class CataloguedFilm {
 
     public CataloguedFilm(Film film) {
         filmName = film.getName().toLowerCase();
-        film.getGenres().forEach(genre -> filmDirectors.add(genre.getName().toLowerCase()));
-        //film.getDirectors().forEach(director -> filmDirectors.add(director.getName().toLowerCase()));
+        film.getDirectors().forEach(director -> filmDirectors.add(director.getName().toLowerCase()));
     }
 
     public void addDirector(String director) {

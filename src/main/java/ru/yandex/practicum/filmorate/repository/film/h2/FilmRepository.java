@@ -274,7 +274,7 @@ public class FilmRepository implements FilmStorage {
 
     @Override
     public void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue) {
-        /*String sqlQuery = "SELECT f.film_id, f.film_name, d.director_name " +
+        String sqlQuery = "SELECT f.film_id, f.film_name, d.director_name " +
                 "FROM film f " +
                 "LEFT JOIN film_directors fd ON f.film_id = fd.film_id " +
                 "LEFT JOIN directors d ON fd.director_id = d.director_id";
@@ -289,23 +289,6 @@ public class FilmRepository implements FilmStorage {
             } else {
                 filmCatalogue.get(rowSet.getLong("film_id"))
                         .addDirector(rowSet.getString("director_name").toLowerCase());
-            }
-        }*/
-        String sqlQuery = "SELECT f.film_id, f.film_name, g.genre_name " +
-                "FROM film f " +
-                "LEFT JOIN film_genre fg ON f.film_id = fg.film_id " +
-                "LEFT JOIN genre g ON fg.genre_id = g.genre_id";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, new MapSqlParameterSource());
-        while (rowSet.next()) {
-            if (!filmCatalogue.containsKey(rowSet.getLong("film_id"))) {
-                CataloguedFilm film = new CataloguedFilm(rowSet.getString("film_name").toLowerCase());
-                if (rowSet.getString("genre_name") != null) {
-                    film.addDirector(rowSet.getString("genre_name").toLowerCase());
-                }
-                filmCatalogue.put(rowSet.getLong("film_id"), film);
-            } else {
-                filmCatalogue.get(rowSet.getLong("film_id"))
-                        .addDirector(rowSet.getString("genre_name").toLowerCase());
             }
         }
     }

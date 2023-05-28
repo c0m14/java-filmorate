@@ -31,4 +31,3 @@ public interface FilmStorage {
 
     void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue);
 }
-

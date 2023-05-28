@@ -3,11 +3,9 @@ package ru.yandex.practicum.filmorate.util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.RatingMPA;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.film.h2.DirectorDaoImpl;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
@@ -24,6 +22,7 @@ public class TestDataProducer {
     @Qualifier("H2UserRepository")
     private final UserStorage userStorage;
     private final FilmService filmService;
+    private final DirectorDaoImpl directorDao;
     private final Set<Genre> correctGenres = Set.of(new Genre(2, "Драма"), new Genre(6, "Боевик"));
     private final Set<Genre> wrongGenres = Set.of(new Genre(999, "Драма"), new Genre(1000, "Боевик"));
     private final RatingMPA correctRatingMpa = new RatingMPA(1, "G");
@@ -151,29 +150,31 @@ public class TestDataProducer {
     }
 
     public void createContextWithSearchFilms() {
+        Director director1 = directorDao.add(Director.builder().name("Average Director").build());
+        Director director2 = directorDao.add(Director.builder().name("Controversial Director Name").build());
         filmService.addFilm(Film.builder()
-                .name("Медиана")
+                .name("Average Film Name")
                 .description("description")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(93)
                 .mpa(correctRatingMpa)
-                .genres(Set.of(new Genre(2, "Драма")))
+                .directors(Set.of(director1))
                 .build());
         filmService.addFilm(Film.builder()
-                .name("Хороший фильм")
+                .name("Best Movie Ever")
                 .description("description")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(93)
                 .mpa(correctRatingMpa)
-                .genres(Set.of(new Genre(1, "Комедия")))
+                .directors(Set.of(director2))
                 .build());
         filmService.addFilm(Film.builder()
-                .name("Плохой фильм")
+                .name("Worst Movie Ever")
                 .description("description")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(93)
                 .mpa(correctRatingMpa)
-                .genres(Set.of(new Genre(1, "Комедия")))
+                .directors(Set.of(director2))
                 .build());
         userStorage.addUser(User.builder()
                 .name("name1")
