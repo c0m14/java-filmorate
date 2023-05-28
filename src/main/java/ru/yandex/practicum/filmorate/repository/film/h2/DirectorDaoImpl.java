@@ -24,7 +24,7 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public Director findById(Integer id) {
-        SqlRowSet directorRows = jdbcTemplate.queryForRowSet("select * from directors where director_id = ?", id);
+        SqlRowSet directorRows = jdbcTemplate.queryForRowSet("select director_id, director_name from directors where director_id = ?", id);
         if (directorRows.next()) {
             Director director = Director.builder()
                     .id(directorRows.getInt("director_id"))
@@ -41,7 +41,7 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public List<Director> findAll() {
-        SqlRowSet directorRows = jdbcTemplate.queryForRowSet("select * from directors");
+        SqlRowSet directorRows = jdbcTemplate.queryForRowSet("select director_id, director_name from directors");
         List<Director> directors = new ArrayList<>();
 
         while (directorRows.next()) {
@@ -141,7 +141,7 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public void checkDirectorById(Integer directorId) {
-        String sqlQuery = "SELECT * FROM directors WHERE director_id = ?";
+        String sqlQuery = "SELECT director_id FROM directors WHERE director_id = ?";
         SqlRowSet directorRows = jdbcTemplate.queryForRowSet(sqlQuery, directorId);
         if (directorRows.next()) {
             log.info("Director with id {} have found in DB.", directorId);
