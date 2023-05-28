@@ -9,13 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.film.h2.RatingMpaDao;
 import ru.yandex.practicum.filmorate.service.recommendations.RecommendationsService;
@@ -1437,7 +1434,7 @@ public class FilmTest {
     }
 
     @Test
-    public void shouldFillSeveralUserLikes(){
+    public void shouldFillSeveralUserLikes() {
         Map<Long, Set<Long>> userLikes;
         Long userId = testDataProducer.addDefaultUserToDB();
         Long userId2 = testDataProducer.addDefaultUserToDB();
