@@ -541,6 +541,65 @@ public class FilmReviewTest {
         assertEquals(HttpStatus.valueOf(404), response.getStatusCode(), "Wrong status code");
     }
 
+    @Test
+    public void shouldCalculateUsefulIfOnlyLikesExist() {
+        FilmReview filmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long filmReviewId = filmReviewStorage.addReview(filmReview).getReviewId();
+        Long userId1 = testDataProducer.addDefaultUserToDB();
+        filmReviewStorage.addLikeToReview(filmReviewId, userId1);
+
+        FilmReview requestedFilmReview = testRestTemplate.exchange(
+                getDeleteOrGetByURI(filmReviewId),
+                HttpMethod.GET,
+                null,
+                FilmReview.class
+        ).getBody();
+
+        assertEquals(1, requestedFilmReview.getUseful(), "Useful is wrong");
+    }
+
+    @Test
+    public void shouldCalculateUsefulIfOnlyDislikesExist() {
+        FilmReview filmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long filmReviewId = filmReviewStorage.addReview(filmReview).getReviewId();
+        Long userId1 = testDataProducer.addDefaultUserToDB();
+        filmReviewStorage.addDislikeToReview(filmReviewId, userId1);
+
+        FilmReview requestedFilmReview = testRestTemplate.exchange(
+                getDeleteOrGetByURI(filmReviewId),
+                HttpMethod.GET,
+                null,
+                FilmReview.class
+        ).getBody();
+
+        assertEquals(-1, requestedFilmReview.getUseful(), "Useful is wrong");
+    }
+
+    @Test
+    public void shouldCalculateUsefulIfLikesAndDislikesExist() {
+        FilmReview filmReview = filmReviewTestDataProducer.getValidPositiveReview();
+        Long filmReviewId = filmReviewStorage.addReview(filmReview).getReviewId();
+        Long userId1 = testDataProducer.addDefaultUserToDB();
+        Long userId2 = testDataProducer.addDefaultUserToDB();
+        Long userId3 = testDataProducer.addDefaultUserToDB();
+        Long userId4 = testDataProducer.addDefaultUserToDB();
+        Long userId5 = testDataProducer.addDefaultUserToDB();
+        filmReviewStorage.addDislikeToReview(filmReviewId, userId1);
+        filmReviewStorage.addDislikeToReview(filmReviewId, userId2);
+        filmReviewStorage.addLikeToReview(filmReviewId, userId3);
+        filmReviewStorage.addLikeToReview(filmReviewId, userId4);
+        filmReviewStorage.addLikeToReview(filmReviewId, userId5);
+
+        FilmReview requestedFilmReview = testRestTemplate.exchange(
+                getDeleteOrGetByURI(filmReviewId),
+                HttpMethod.GET,
+                null,
+                FilmReview.class
+        ).getBody();
+
+        assertEquals(1, requestedFilmReview.getUseful(), "Useful is wrong");
+    }
+
     // =============================== GET /reviews?filmId={filmId}&count={count} ======================================
 
     @Test

@@ -183,10 +183,14 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
     }
 
     private Integer calculateUseful(Long reviewId) {
-        String sqlQuery = "SELECT COUNT(DISTINCT(LIKES.USER_ID)) - COUNT(DISTINCT(DISLIKES.USER_ID)) " +
-                "FROM user_review_likes AS likes " +
-                "INNER JOIN user_review_dislikes AS dislikes ON likes.review_id = dislikes.review_id " +
-                "WHERE likes.review_id = :reviewId AND dislikes.review_id = :reviewId ";
+        String sqlQuery = "SELECT " +
+                "(SELECT COUNT(user_id) " +
+                "FROM user_review_likes " +
+                "WHERE review_id = :reviewId) " +
+                "- " +
+                "(SELECT COUNT(user_id) " +
+                "FROM user_review_dislikes " +
+                "WHERE review_id = :reviewId)";
 
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
 
