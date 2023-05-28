@@ -30,7 +30,11 @@ public class ErrorHandler {
 
     }
 
-    @ExceptionHandler({InvalidUserFieldsException.class, InvalidFilmFieldsException.class})
+    @ExceptionHandler({
+            InvalidUserFieldsException.class,
+            InvalidFilmFieldsException.class,
+            InvalidFilmReviewFieldsException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleInvalidFieldsExceptionWithManualValidation(InvalidFieldsException e) {
         log.error(e.getMessage());
@@ -78,6 +82,27 @@ public class ErrorHandler {
     public ErrorResponse handleDirectorNotExistsException(DirectorNotExistsException e) {
         log.error(e.getMessage());
         return new ErrorResponse("director", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewNotExistException(FilmReviewNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewId", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewLikeNotExistException(FilmReviewLikeNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewLike record", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewDislikeNotExistException(FilmReviewDislikeNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewDislike record", e.getMessage());
     }
 
     @ExceptionHandler
