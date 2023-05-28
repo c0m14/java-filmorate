@@ -8,6 +8,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,6 +19,7 @@ import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,6 +33,7 @@ public class FilmRepository implements FilmStorage {
     private final RatingMpaDao ratingMpaDao;
     private final FilmGenreDao filmGenreDao;
     private final FilmLikesDao filmLikesDao;
+    private final JdbcTemplate jdbcTemplateNotNamedParameter;
 
     @Override
     @Transactional
@@ -125,6 +129,56 @@ public class FilmRepository implements FilmStorage {
     @Override
     public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
         return filmLikesDao.removeFilmLike(filmId, userId);
+    }
+
+    @Override
+    public Map<Long, Set<Long>> fillInUserLikes() {
+        String sqlQuery = "SELECT uf.USER_ID, uf.FILM_ID " +
+                "FROM USERS u " +
+                "INNER JOIN USER_FILM_LIKES uf ON u.USER_ID = uf.USER_ID";
+
+        Map<Long, Set<Long>> usersLikedFilmsIds = new HashMap<>();
+
+        SqlRowSet rowSet = jdbcTemplateNotNamedParameter.queryForRowSet(sqlQuery);
+        while (rowSet.next()) {
+            long userId = rowSet.getLong("USER_ID");
+            long filmId = rowSet.getLong("FILM_ID");
+
+            Set<Long> filmsIds = usersLikedFilmsIds.get(userId);
+            if (filmsIds == null) {
+                filmsIds = new HashSet<>();
+                usersLikedFilmsIds.put(userId, filmsIds);
+            }
+
+            filmsIds.add(filmId);
+        }
+        return usersLikedFilmsIds;
+    }
+
+    @Override
+    public List<Film> getFilmsByIds(Set<Long> filmIds) {
+
+        List<Film> films = new ArrayList<>();
+
+        if (filmIds.isEmpty()) {
+            log.info("Нет рекомендованных фильмов");
+            return films;
+        }
+
+        StringJoiner filmIdsString = new StringJoiner(",");
+        for (long filmId : filmIds) {
+            filmIdsString.add(String.valueOf(filmId));
+        }
+
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "WHERE f.film_id IN (" + filmIdsString + ")";
+
+        films.addAll(jdbcTemplate.query(sqlQuery, this::mapRowToFilm));
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
     }
 
     @Override
