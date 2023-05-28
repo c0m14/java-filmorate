@@ -116,6 +116,7 @@ public class FilmService {
         }
         return result;
     }
+
     private void initiateFilmCatalogue() {
         filmStorage.initiateFilmCatalogue(filmCatalogue);
     }
