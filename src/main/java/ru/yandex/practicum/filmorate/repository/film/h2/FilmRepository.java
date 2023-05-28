@@ -10,15 +10,21 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_LIKES;
+import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_YEAR;
 
 @Component
 @Qualifier("H2FilmRepository")
@@ -30,6 +36,7 @@ public class FilmRepository implements FilmStorage {
     private final RatingMpaDao ratingMpaDao;
     private final FilmGenreDao filmGenreDao;
     private final FilmLikesDao filmLikesDao;
+    private final DirectorDao directorDao;
 
     @Override
     @Transactional
@@ -53,6 +60,16 @@ public class FilmRepository implements FilmStorage {
                     .collect(Collectors.toSet());
 
             filmGenreDao.setGenresToFilm(filmId, genresIdSet);
+        }
+
+        if (!film.getDirectors().isEmpty()) {
+            Set<Integer> directorsIdSet = film.getDirectors()
+                    .stream()
+                    .mapToInt(Director::getId)
+                    .boxed()
+                    .collect(Collectors.toSet());
+
+            directorDao.addDirectorsToFilm(filmId, directorsIdSet);
         }
 
         film.setId(filmId);
@@ -89,6 +106,17 @@ public class FilmRepository implements FilmStorage {
                     .collect(Collectors.toSet());
 
             filmGenreDao.setGenresToFilm(film.getId(), genresIdSet);
+        }
+
+        directorDao.removeDirectorsFromFilm(film.getId());
+        if (!film.getDirectors().isEmpty()) {
+            Set<Integer> directorsIdSet = film.getDirectors()
+                    .stream()
+                    .mapToInt(Director::getId)
+                    .boxed()
+                    .collect(Collectors.toSet());
+
+            directorDao.addDirectorsToFilm(film.getId(), directorsIdSet);
         }
 
         return film;
@@ -183,9 +211,44 @@ public class FilmRepository implements FilmStorage {
         return films;
     }
 
+    @Override
+    public List<Film> getFilmsByDirector(Integer directorId, String sort) {
+        directorDao.checkDirectorById(directorId);
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name, d.director_id, d.director_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
+                "LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id " +
+                "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
+                "WHERE d.director_id = :directorId " +
+                "GROUP BY f.film_id, mr.mpa_rating_name, d.director_id ";
+        if (sort.equals(SORT_BY_YEAR)) {
+            sqlQuery = sqlQuery + "ORDER BY f.release_date ASC;";
+        } else if (sort.equals(SORT_BY_LIKES)) {
+            sqlQuery = sqlQuery + "ORDER BY COUNT(likes.user_id) ASC;";
+        } else {
+            throw new InvalidFieldsException("Constants", "Wrong sort type in the endpoint");
+        }
+
+        SqlParameterSource namedParam = new MapSqlParameterSource()
+                .addValue("directorId", directorId);
+        List<Film> films;
+
+        try {
+            films = jdbcTemplate.query(sqlQuery, namedParam, this::mapRowToFilm);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
+
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
+    }
+
     private void fetchAdditionalParamsToFilmsList(List<Film> films) {
         fetchGenresToFilms(films);
         fetchLikesToFilms(films);
+        fetchDirectorsToFilms(films);
     }
 
     private void fetchGenresToFilms(List<Film> films) {
@@ -213,6 +276,17 @@ public class FilmRepository implements FilmStorage {
             }
         });
 
+    }
+
+    private void fetchDirectorsToFilms(List<Film> films) {
+        List<Long> filmIds = getIdsFromFilmsList(films);
+        Map<Long, Set<Director>> mapFilmIdToDirectors = directorDao.getDirectorsForFilms(filmIds);
+
+        films.forEach(film -> {
+            if (mapFilmIdToDirectors.containsKey(film.getId())) {
+                film.setDirectors(mapFilmIdToDirectors.get(film.getId()));
+            }
+        });
     }
 
     private List<Long> getIdsFromFilmsList(List<Film> films) {

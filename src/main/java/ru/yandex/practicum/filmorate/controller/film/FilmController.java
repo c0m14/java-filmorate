@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
+import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
@@ -12,6 +13,9 @@ import ru.yandex.practicum.filmorate.service.film.FilmService;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.util.List;
+
+import static ru.yandex.practicum.filmorate.model.Constants.SORTS;
+import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_YEAR;
 
 @Slf4j
 @RestController
@@ -83,6 +87,19 @@ public class FilmController {
     ) {
         log.debug("Got request to find common films to users with id {} and {}", userId, friendId);
         return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/director/{directorId}") // GET /films/director/{directorId}?sortBy=[year,likes]
+    public List<Film> getFilmsByDirector(
+            @Valid
+            @PathVariable("directorId") @Min(1) Integer directorId,
+            @RequestParam(defaultValue = SORT_BY_YEAR, required = false) String sortBy
+    ) {
+        if (!SORTS.contains(sortBy)) {
+            throw new IncorrectParameterException("sortBy");
+        }
+        log.debug("Got request to get films by director: {}", directorId);
+        return filmService.getFilmsByDirector(directorId, sortBy);
     }
 
 }
