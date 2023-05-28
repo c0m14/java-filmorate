@@ -79,11 +79,9 @@ public class DirectorDaoImpl implements DirectorDao {
     @Override
     public void remove(Integer directorId) {
         checkDirectorById(directorId);
-        String sqlQuery = "DELETE FROM film_directors " +
-                "WHERE director_id = ?; " +
-                "DELETE FROM directors " +
+        String sqlQuery = "DELETE FROM directors " +
                 "WHERE director_id = ?;";
-        jdbcTemplate.update(sqlQuery, directorId, directorId);
+        jdbcTemplate.update(sqlQuery, directorId);
         log.info("Director id {} deleted", directorId);
     }
 

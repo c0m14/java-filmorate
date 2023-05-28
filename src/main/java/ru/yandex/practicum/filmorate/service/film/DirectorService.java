@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
@@ -11,7 +10,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DirectorService {
-    @Autowired
     private final DirectorDao directorDao;
 
     public Director findById(Integer directorId) {

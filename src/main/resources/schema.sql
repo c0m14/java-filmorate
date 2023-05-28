@@ -73,6 +73,8 @@ CREATE TABLE FILM_DIRECTORS (
                               FILM_ID INTEGER,
                               DIRECTOR_ID INTEGER,
                               PRIMARY KEY (FILM_ID, DIRECTOR_ID),
-                              CONSTRAINT fk__film_directors__film FOREIGN KEY (FILM_ID) REFERENCES FILM (FILM_ID),
-                              CONSTRAINT fk__film_directors__director FOREIGN KEY (DIRECTOR_ID) REFERENCES DIRECTORS (DIRECTOR_ID)
+                              CONSTRAINT fk__film_directors__film FOREIGN KEY (FILM_ID)
+                              REFERENCES FILM (FILM_ID) ON DELETE CASCADE,
+                              CONSTRAINT fk__film_directors__director FOREIGN KEY (DIRECTOR_ID)
+                              REFERENCES DIRECTORS (DIRECTOR_ID) ON DELETE CASCADE
 );

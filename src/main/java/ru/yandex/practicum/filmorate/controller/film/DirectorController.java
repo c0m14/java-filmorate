@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller.film;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
@@ -19,8 +18,7 @@ import java.util.List;
 @RequestMapping(value = "/directors")
 @Validated
 public class DirectorController {
-    @Autowired
-    DirectorService directorService;
+    private final DirectorService directorService;
 
     @GetMapping //GET /directors - Список всех режиссёров
     public List<Director> findAll() {
