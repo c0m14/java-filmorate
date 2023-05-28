@@ -111,6 +111,18 @@ public class FilmTest {
         );
     }
 
+    private URI createBadGetSearch() {
+        return URI.create(
+                String.format("%s%s/films/search", HOST, port)
+        );
+    }
+
+    private URI createGetSearch(String query, String by) {
+        return URI.create(
+                String.format("%s%s/films/search?query=%s&by=%s", HOST, port, query, by)
+        );
+    }
+
 
     // =============================== POST /films ======================================
 
@@ -1428,5 +1440,213 @@ public class FilmTest {
                 String.class);
 
         assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    // =============================== GET films/search ======================================
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnTwoFilmsWithSearchByTitle() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%A4%D0%B8%D0%BB%D0%AC", "title"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(2, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(1),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnOneFilmWithSearchByTitleAndSomethingElse() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%94%D0%B8%D0%B0%D0%BD%D0%B0", "title,something,else"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(1, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(1L).get(), requestedFilms.get(0),
+                "Wrong found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyListWithSearchByTitle() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%BD%D0%B5%D1%82", "title"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(0, requestedFilms.size(), "Wrong searched films size");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnTwoFilmsWithSearchByDirector() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%BA%D0%BE%D0%BC%D0%B5%D0%B4%D0%98", "director"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(2, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(1),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnOneFilmWithSearchByDirectorAndSomethingElse() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%94%D0%A0%D0%90", "director,something,else"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(1, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(1L).get(), requestedFilms.get(0),
+                "Wrong found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyListWithSearchByDirector() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%BD%D0%B5%D1%82", "director"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(0, requestedFilms.size(), "Wrong searched films size");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnThreeFilmsWithSearchByTitleAndDirector() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%BC%D0%B5%D0%B4%D0%B8", "title,director"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(3, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(1L).get(), requestedFilms.get(1),
+                "Wrong average popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(2),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnTwoFilmsWithSearchByTitleDirectorAndSomethingElse() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%9A%D0%9E%D0%9C%D0%95%D0%94", "title,director,something,else"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(2, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(1),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnOneFilmWithSearchWithoutByParameter() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%9B%D0%9E%D0%A5", ""),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(1, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(0),
+                "Wrong found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyListWithSearchWithoutByParameter() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("%D0%BD%D0%B5%D1%82", ""),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(0, requestedFilms.size(), "Wrong searched films size");
+    }
+
+    @Test
+    public void shouldReturn400IfQueryIsNotPresent() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createBadGetSearch(),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn400IfByDoesNotContainTitleOrDirector() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetSearch("searchValue", "wrong,search,filters"),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
     }
 }

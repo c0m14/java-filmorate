@@ -119,6 +119,13 @@ public class ErrorHandler {
         );
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInvalidRequestParametersException(InvalidRequestParameterException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("by", e.getMessage());
+    }
+
     @Getter
     @AllArgsConstructor
     private class ErrorResponseList {

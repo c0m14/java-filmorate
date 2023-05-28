@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class TestDataProducer {
     private final FilmStorage filmStorage;
     @Qualifier("H2UserRepository")
     private final UserStorage userStorage;
+    private final FilmService filmService;
     private final Set<Genre> correctGenres = Set.of(new Genre(2, "Драма"), new Genre(6, "Боевик"));
     private final Set<Genre> wrongGenres = Set.of(new Genre(999, "Драма"), new Genre(1000, "Боевик"));
     private final RatingMPA correctRatingMpa = new RatingMPA(1, "G");
@@ -146,5 +148,47 @@ public class TestDataProducer {
                 filmStorage.giveLikeFromUserToFilm(j, i);
             }
         }
+    }
+
+    public void createContextWithSearchFilms() {
+        filmService.addFilm(Film.builder()
+                .name("Медиана")
+                .description("description")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(93)
+                .mpa(correctRatingMpa)
+                .genres(Set.of(new Genre(2, "Драма")))
+                .build());
+        filmService.addFilm(Film.builder()
+                .name("Хороший фильм")
+                .description("description")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(93)
+                .mpa(correctRatingMpa)
+                .genres(Set.of(new Genre(1, "Комедия")))
+                .build());
+        filmService.addFilm(Film.builder()
+                .name("Плохой фильм")
+                .description("description")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(93)
+                .mpa(correctRatingMpa)
+                .genres(Set.of(new Genre(1, "Комедия")))
+                .build());
+        userStorage.addUser(User.builder()
+                .name("name1")
+                .login("login1")
+                .email("email1@domen.com")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build());
+        userStorage.addUser(User.builder()
+                .name("name2")
+                .login("login2")
+                .email("email2@domen.com")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build());
+        filmStorage.giveLikeFromUserToFilm(1L, 1L);
+        filmStorage.giveLikeFromUserToFilm(2L, 1L);
+        filmStorage.giveLikeFromUserToFilm(2L, 2L);
     }
 }
