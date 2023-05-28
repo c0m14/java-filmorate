@@ -42,6 +42,14 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectParameterException(final IncorrectParameterException e) {
+        return new ErrorResponse("sortBy",
+                String.format("Ошибка с полем \"%s\".", e.getParameter())
+        );
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleUserNotExistException(UserNotExistException e) {
         log.error(e.getMessage());
@@ -67,6 +75,13 @@ public class ErrorHandler {
     public ErrorResponse handleFilmMpaRatingNotExistException(MpaRatingNotExistException e) {
         log.error(e.getMessage());
         return new ErrorResponse("mpa", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleDirectorNotExistsException(DirectorNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("director", e.getMessage());
     }
 
     @ExceptionHandler
