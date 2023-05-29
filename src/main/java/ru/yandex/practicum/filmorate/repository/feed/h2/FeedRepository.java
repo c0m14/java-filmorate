@@ -1,14 +1,13 @@
 package ru.yandex.practicum.filmorate.repository.feed.h2;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.feed.EventType;
-import ru.yandex.practicum.filmorate.model.feed.Feed;
-import ru.yandex.practicum.filmorate.model.feed.OperationType;
+import ru.yandex.practicum.filmorate.model.feed.*;
 import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 
 import java.sql.ResultSet;
@@ -45,7 +44,11 @@ public class FeedRepository implements FeedStorage {
                 "WHERE userId = :userId";
         SqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("userId", userId);
-        return jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToFeed);
+        try {
+            return jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToFeed);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
     }
 
     private Feed mapRowToFeed(ResultSet resultSet, int rowNum) throws SQLException {
@@ -58,5 +61,4 @@ public class FeedRepository implements FeedStorage {
                 .eventId(resultSet.getLong("eventId"))
                 .build();
     }
-
 }
