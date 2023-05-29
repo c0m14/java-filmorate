@@ -97,9 +97,4 @@ public class UserController {
         log.debug("Got request to get feed list for user with id: {}", userId);
         return feedService.getFeedListById(userId);
     }
-
-    @PutMapping("/dosmf")
-    public void doSMF() {
-        feedService.reviewTest();
-    }
 }
