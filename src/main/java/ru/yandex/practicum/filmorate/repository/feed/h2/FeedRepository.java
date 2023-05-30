@@ -1,12 +1,13 @@
 package ru.yandex.practicum.filmorate.repository.feed.h2;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.FeedStorageEmptyException;
 import ru.yandex.practicum.filmorate.model.feed.*;
 import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class FeedRepository implements FeedStorage {
 
@@ -45,8 +47,9 @@ public class FeedRepository implements FeedStorage {
                 .addValue("userId", userId);
         try {
             return jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToFeed);
-        } catch (EmptyResultDataAccessException e) {
-            return List.of();
+        } catch (FeedStorageEmptyException e) {
+            log.error("not correct FeedRepository return result");
+            throw new FeedStorageEmptyException("Empty storage");
         }
     }
 
