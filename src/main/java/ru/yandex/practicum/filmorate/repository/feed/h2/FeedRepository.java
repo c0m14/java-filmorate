@@ -33,8 +33,7 @@ public class FeedRepository implements FeedStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate.getJdbcTemplate())
                 .withTableName("feed")
                 .usingGeneratedKeyColumns("eventId");
-        Long eventId = simpleJdbcInsert.executeAndReturnKey(feed.mapToDb()).longValue();
-        feed.setEventId(eventId);
+        simpleJdbcInsert.executeAndReturnKey(feed.mapToDb()).longValue();
     }
 
     @Override
