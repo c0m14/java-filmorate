@@ -225,7 +225,7 @@ public class FilmRepository implements FilmStorage {
 
         jdbcTemplate.update(sqlQuery, namedParams);
     }
-    
+
     public List<Film> getFilmsByDirector(Integer directorId, String sort) {
         directorDao.checkDirectorById(directorId);
         String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
