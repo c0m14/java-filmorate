@@ -77,10 +77,15 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> getPopularFilms(
-            @RequestParam(value = "count", defaultValue = "10") @Min(1) int count
+            @RequestParam(value = "count", defaultValue = "10") @Min(1) int count,
+            @RequestParam(required = false) Integer genreId,
+            @RequestParam(required = false) Integer year
     ) {
         log.debug("Got request to get {} most popular film(s)", count);
-        return filmService.getPopularFilms(count);
+        if (genreId != null || year != null) {
+            log.debug("With genreId {} and year {}", genreId, year);
+        }
+        return filmService.getPopularFilms(count, genreId, year);
     }
 
     @GetMapping("/common")
@@ -145,3 +150,4 @@ public class FilmController {
         return filmService.searchFilms(query.toLowerCase(), by);
     }
 }
+
