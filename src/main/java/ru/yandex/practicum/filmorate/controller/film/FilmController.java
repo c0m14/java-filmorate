@@ -92,6 +92,15 @@ public class FilmController {
         return filmService.getCommonFilms(userId, friendId);
     }
 
+    @DeleteMapping("/{filmId}")
+    public void removeFilmById(
+            @Valid
+            @PathVariable("filmId") Long filmId
+    ) {
+        log.debug("Got request to remove film with id {}", filmId);
+        filmService.removeFilmById(filmId);
+    }
+
     @GetMapping("/director/{directorId}") // GET /films/director/{directorId}?sortBy=[year,likes]
     public List<Film> getFilmsByDirector(
             @Valid

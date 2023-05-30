@@ -216,6 +216,16 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
+    public void removeFilmById(Long filmId) {
+        String sqlQuery = "DELETE FROM film " +
+                "WHERE film_id = :filmId";
+
+        SqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("filmId", filmId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+    }
+
     public List<Film> getFilmsByDirector(Integer directorId, String sort) {
         directorDao.checkDirectorById(directorId);
         String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
@@ -291,6 +301,7 @@ public class FilmRepository implements FilmStorage {
                         .addDirector(rowSet.getString("director_name").toLowerCase());
             }
         }
+
     }
 
     private void fetchAdditionalParamsToFilmsList(List<Film> films) {

@@ -86,6 +86,12 @@ public class FilmService {
         return filmStorage.getCommonFilms(userId, otherUserId);
     }
 
+    public void removeFilmById(Long filmId) {
+        filmFieldsValidator.checkIfPresentById(filmId);
+
+        filmStorage.removeFilmById(filmId);
+    }
+
     public List<Film> getFilmsByDirector(Integer directorId, String sort) {
         return filmStorage.getFilmsByDirector(directorId, sort);
     }
