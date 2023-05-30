@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.repository.film.inMemory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.CataloguedFilm;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
@@ -63,6 +64,20 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void removeFilmById(Long filmId) {
+        throw new UnsupportedOperationException();
+    }
+
+    public List<Film> getFilmsByDirector(Integer directorId, String sort) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Film> getFilmsByIdListSortedByPopularity(List<Long> filmIds) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue) {
         throw new UnsupportedOperationException();
     }
 }
