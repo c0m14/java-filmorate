@@ -86,10 +86,10 @@ public class UserController {
         return userService.getCommonFriends(userId, otherUserId);
     }
 
-    @DeleteMapping("/users/{userId}")
+    @DeleteMapping("/{userId}")
     public void removeUserById(
             @Valid
-            @PathVariable("id") Long userId
+            @PathVariable("userId") Long userId
     ) {
         log.debug("Got request to delete user with id: {}", userId);
         userService.removeUserById(userId);

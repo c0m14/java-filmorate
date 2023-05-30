@@ -186,7 +186,7 @@ public class UserRepository implements UserStorage {
 
     @Override
     public void removeUserById(Long userId) {
-        String sqlQuery = "DELETE FROM users" +
+        String sqlQuery = "DELETE FROM users " +
                 "WHERE user_id = :userId";
         SqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("userId", userId);
