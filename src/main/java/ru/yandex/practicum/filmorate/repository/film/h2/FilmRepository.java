@@ -175,10 +175,10 @@ public class FilmRepository implements FilmStorage {
 
         SqlParameterSource namedParams = new MapSqlParameterSource();
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sqlQuery, namedParams);
-        for (Map<String, Object> row : rows) {
-            long userId = (long) row.get("USER_ID");
-            Long filmId = (Long) row.get("FILM_ID");
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, namedParams);
+        while (rowSet.next()) {
+            long userId = rowSet.getLong("USER_ID");
+            Long filmId = rowSet.getLong("FILM_ID");
 
             if (filmId != null) {
                 Set<Long> filmIds = usersLikedFilmsIds.get(userId);
