@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.FilmReviewNotExistsException;
 import ru.yandex.practicum.filmorate.model.FilmReview;
+import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.OperationType;
+import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
 
 import java.sql.ResultSet;
@@ -23,6 +26,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Component
 public class FilmFilmReviewRepository implements FilmReviewStorage {
+    private final FeedStorage feedStorage;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -34,7 +38,7 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
 
         Long reviewId = simpleJdbcInsert.executeAndReturnKey(filmReview.mapToDb()).longValue();
         filmReview.setReviewId(reviewId);
-
+        feedStorage.addEvent(filmReview.getUserId(), filmReview.getReviewId(), EventType.REVIEW, OperationType.ADD);
         return filmReview;
     }
 
@@ -61,7 +65,7 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
         //Возвращаем отзыв из БД, так как в полученном могут быть некорректные поля
         FilmReview filmReviewFromDb = getReviewById(reviewId).get();
         filmReviewFromDb.setUseful(calculateUseful(reviewId));
-
+        feedStorage.addEvent(filmReviewFromDb.getUserId(), filmReviewFromDb.getReviewId(), EventType.REVIEW, OperationType.UPDATE);
         return filmReviewFromDb;
     }
 
@@ -175,10 +179,11 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
 
     @Override
     public boolean deleteReview(Long reviewId) {
+        Long userId = getReviewById(reviewId).get().getUserId();
         String sqlQuery = "DELETE FROM review " +
                 "WHERE review_id = :reviewId";
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
-
+        feedStorage.addEvent(userId, reviewId, EventType.REVIEW, OperationType.REMOVE);
         return jdbcTemplate.update(sqlQuery, namedParam) > 0;
     }
 
