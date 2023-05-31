@@ -23,7 +23,7 @@ public interface FilmStorage {
     boolean removeUserLikeFromFilm(Long filmId, Long userId);
 
     List<Film> getPopularFilms(Integer count, Integer genreId, Integer year);
-    
+
     Map<Long, Set<Long>> fillInUserLikes();
 
     List<Film> getFilmsByIds(Set<Long> filmIds);
