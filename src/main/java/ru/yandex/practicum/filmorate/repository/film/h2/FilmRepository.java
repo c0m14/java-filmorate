@@ -155,10 +155,8 @@ public class FilmRepository implements FilmStorage {
 
     @Override
     public void giveLikeFromUserToFilm(Long filmId, Long userId) {
-        //Если создавать ивент в этом месте после создания лайка, то не проходят тесты
-        //т. к. считается правильным возможность создавать два лайка от одного пользователя, одному фильму
-        feedStorage.addEvent(userId, filmId, EventType.LIKE, OperationType.ADD);
         filmLikesDao.setFilmLike(filmId, userId);
+        feedStorage.addEvent(userId, filmId, EventType.LIKE, OperationType.ADD);
     }
 
     @Override

@@ -47,7 +47,7 @@ class FilmLikesDao {
     }
 
     public void setFilmLike(Long filmId, Long userId) {
-        String sqlQuery = "INSERT INTO user_film_likes " +
+        String sqlQuery = "MERGE INTO user_film_likes " +
                 "VALUES (:userId, :filmId)";
         SqlParameterSource namedParams = new MapSqlParameterSource()
                 .addValue("userId", userId)
