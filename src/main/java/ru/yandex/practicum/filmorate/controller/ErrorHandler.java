@@ -30,11 +30,21 @@ public class ErrorHandler {
 
     }
 
-    @ExceptionHandler({InvalidUserFieldsException.class, InvalidFilmFieldsException.class})
+    @ExceptionHandler({
+            InvalidUserFieldsException.class,
+            InvalidFilmFieldsException.class,
+            InvalidFilmReviewFieldsException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleInvalidFieldsExceptionWithManualValidation(InvalidFieldsException e) {
         log.error(e.getMessage());
         return new ErrorResponse(e.getFieldName(), e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectParameterException(final IncorrectParameterException e) {
+        return new ErrorResponse(e.getParameter(), e.getMessage());
     }
 
     @ExceptionHandler
@@ -66,6 +76,34 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleDirectorNotExistsException(DirectorNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("director", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewNotExistException(FilmReviewNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewId", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewLikeNotExistException(FilmReviewLikeNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewLike record", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleReviewDislikeNotExistException(FilmReviewDislikeNotExistsException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("reviewDislike record", e.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseList handleConstraintViolationException(ConstraintViolationException e) {
         log.error(e.getMessage());
@@ -77,6 +115,13 @@ public class ErrorHandler {
                         ))
                         .collect(Collectors.toList())
         );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleFeedNotExistException(FeedStorageEmptyException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse("feed", e.getMessage());
     }
 
     @Getter

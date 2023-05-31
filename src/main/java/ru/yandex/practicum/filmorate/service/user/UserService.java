@@ -66,4 +66,8 @@ public class UserService {
         );
     }
 
+    public void removeUserById(Long userId) {
+        userFieldsValidator.checkIfPresentById(userId);
+        userStorage.removeUserById(userId);
+    }
 }

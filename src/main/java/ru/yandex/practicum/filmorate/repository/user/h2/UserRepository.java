@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.FriendConfirmationStatus;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.OperationType;
+import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 
 import java.sql.ResultSet;
@@ -26,6 +29,7 @@ import java.util.Optional;
 public class UserRepository implements UserStorage {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final FeedStorage feedStorage;
 
     @Override
     public User addUser(User user) {
@@ -97,6 +101,7 @@ public class UserRepository implements UserStorage {
 
         jdbcTemplate.update(sqlQueryAddUserRecord, namedParams);
         jdbcTemplate.update(sqlQueryAddFriendRecord, namedParams);
+        feedStorage.addEvent(userId, friendId, EventType.FRIEND, OperationType.ADD);
     }
 
     @Override
@@ -173,15 +178,28 @@ public class UserRepository implements UserStorage {
 
         if (currentFriendUserStatus.get().equals(FriendConfirmationStatus.CONFIRMED) &&
                 currentUserFriendStatus.get().equals(FriendConfirmationStatus.CONFIRMED)) {
+            feedStorage.addEvent(userId, friendId, EventType.FRIEND, OperationType.REMOVE);
             return jdbcTemplate.update(changeFriendStatusForPending, namedParams) > 0;
         }
 
         if (currentUserFriendStatus.get().equals(FriendConfirmationStatus.CONFIRMED) &&
                 currentFriendUserStatus.get().equals(FriendConfirmationStatus.WAITING_FOR_APPROVAL)) {
+            feedStorage.addEvent(userId, friendId, EventType.FRIEND, OperationType.REMOVE);
             return jdbcTemplate.update(deleteBothRecordsSqlQuery, namedParams) > 0;
         }
 
         return false;
+    }
+
+    @Override
+    public void removeUserById(Long userId) {
+        String sqlQuery = "DELETE FROM users " +
+                "WHERE user_id = :userId";
+        SqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("userId", userId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+
     }
 
     private Optional<FriendConfirmationStatus> getFriendshipStatus(Long userId, Long otherUserId) {

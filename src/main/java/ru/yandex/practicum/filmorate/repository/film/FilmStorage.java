@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.film;
 
+import ru.yandex.practicum.filmorate.model.CataloguedFilm;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
@@ -28,5 +29,12 @@ public interface FilmStorage {
     List<Film> getPopularFilms(int count);
 
     List<Film> getCommonFilms(Long userId, Long otherUserId);
-}
 
+    void removeFilmById(Long filmId);
+
+    List<Film> getFilmsByDirector(Integer directorId, String sort);
+
+    List<Film> getFilmsByIdListSortedByPopularity(List<Long> filmIds);
+
+    void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue);
+}

@@ -5,13 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
+import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
+
+import static ru.yandex.practicum.filmorate.model.Constants.SORTS;
+import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_YEAR;
+import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_TITLE;
+import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_DIRECTOR;
 
 @Slf4j
 @RestController
@@ -85,4 +92,56 @@ public class FilmController {
         return filmService.getCommonFilms(userId, friendId);
     }
 
+    @DeleteMapping("/{filmId}")
+    public void removeFilmById(
+            @Valid
+            @PathVariable("filmId") Long filmId
+    ) {
+        log.debug("Got request to remove film with id {}", filmId);
+        filmService.removeFilmById(filmId);
+    }
+
+    @GetMapping("/director/{directorId}") // GET /films/director/{directorId}?sortBy=[year,likes]
+    public List<Film> getFilmsByDirector(
+            @Valid
+            @PathVariable("directorId") @Min(1) Integer directorId,
+            @RequestParam(defaultValue = SORT_BY_YEAR, required = false) String sortBy
+    ) {
+        if (!SORTS.contains(sortBy)) {
+            throw new IncorrectParameterException("sortBy", "Should be year or likes");
+        }
+        log.debug("Got request to get films by director: {}", directorId);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(
+            @RequestParam(value = "query") @NotBlank String query,
+            @RequestParam(value = "by", required = false) List<String> by
+    ) {
+        StringBuilder stringBuilder = new StringBuilder("Got request to search films");
+        if (by != null && !by.isEmpty()) {
+            stringBuilder.append(" by");
+            by.forEach(value -> stringBuilder.append(" ").append(value).append(" or"));
+            stringBuilder.delete(stringBuilder.length() - 3, stringBuilder.length());
+        }
+        stringBuilder.append(" with substring ").append(query);
+        log.debug(stringBuilder.toString());
+
+        if (by == null || by.isEmpty()) {
+            by = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
+        } else if (by.contains("title")) {
+            if (by.contains("director")) {
+                by = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
+            } else {
+                by = List.of(SEARCH_BY_TITLE);
+            }
+        } else if (by.contains("director")) {
+            by = List.of(SEARCH_BY_DIRECTOR);
+        } else {
+            throw new IncorrectParameterException("By", "Should be title, director or both");
+        }
+
+        return filmService.searchFilms(query.toLowerCase(), by);
+    }
 }
