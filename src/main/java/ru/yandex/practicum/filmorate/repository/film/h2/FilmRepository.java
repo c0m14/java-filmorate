@@ -166,6 +166,59 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
+    public Map<Long, Set<Long>> fillInUserLikes() {
+        String sqlQuery = "SELECT u.USER_ID, uf.FILM_ID " +
+                "FROM USERS u " +
+                "LEFT JOIN USER_FILM_LIKES uf ON u.USER_ID = uf.USER_ID";
+
+        Map<Long, Set<Long>> usersLikedFilmsIds = new HashMap<>();
+
+        SqlParameterSource namedParams = new MapSqlParameterSource();
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, namedParams);
+        while (rowSet.next()) {
+            long userId = rowSet.getLong("USER_ID");
+            Long filmId = rowSet.getLong("FILM_ID");
+
+            if (filmId != null) {
+                Set<Long> filmIds = usersLikedFilmsIds.get(userId);
+                if (filmIds == null) {
+                    filmIds = new HashSet<>();
+                    usersLikedFilmsIds.put(userId, filmIds);
+                }
+                filmIds.add(filmId);
+            }
+        }
+        return usersLikedFilmsIds;
+    }
+
+    @Override
+    public List<Film> getFilmsByIds(Set<Long> filmIds) {
+
+        List<Film> films = new ArrayList<>();
+
+        if (filmIds.isEmpty()) {
+            log.info("Нет рекомендованных фильмов");
+            return films;
+        }
+
+        StringJoiner filmIdsString = new StringJoiner(",");
+        for (long filmId : filmIds) {
+            filmIdsString.add(String.valueOf(filmId));
+        }
+
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "WHERE f.film_id IN (" + filmIdsString + ")";
+
+        films.addAll(jdbcTemplate.query(sqlQuery, this::mapRowToFilm));
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
+    }
+
+    @Override
     public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
         String genreQuery = "";
         String yearQuery = "";
