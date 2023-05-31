@@ -379,31 +379,6 @@ public class FilmRepository implements FilmStorage {
 
     }
 
-    @Override
-    public List<Film> getAnyFilmByYear(Integer year) {
-        List<Film> list = new ArrayList<>();
-        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
-                "f.mpa_rating_id, mr.mpa_rating_name " +
-                "FROM film f " +
-                "LEFT JOIN mpa_rating mr ON f.mpa_rating_id = mr.mpa_rating_id " +
-                "WHERE EXTRACT(YEAR from f.release_date) = " +
-                year.toString() +
-                " ";
-        SqlParameterSource namedParam = new MapSqlParameterSource("year", year);
-        Optional<Film> filmOptional;
-
-        try {
-            filmOptional = Optional.ofNullable(
-                    jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToFilm)
-            );
-            list.add(filmOptional.orElseThrow());
-        } catch (EmptyResultDataAccessException e) {
-            return list;
-        }
-
-        return list;
-    }
-
     private void fetchAdditionalParamsToFilmsList(List<Film> films) {
         fetchGenresToFilms(films);
         fetchLikesToFilms(films);
@@ -490,4 +465,3 @@ public class FilmRepository implements FilmStorage {
                 )
                 .build();
     }
-}
