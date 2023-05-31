@@ -90,9 +90,4 @@ public class InMemoryFilmStorage implements FilmStorage {
     public void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue) {
         throw new UnsupportedOperationException();
     }
-
-    @Override
-    public List<Film> getAnyFilmByYear(Integer year) {
-        throw new UnsupportedOperationException();
-    }
 }
