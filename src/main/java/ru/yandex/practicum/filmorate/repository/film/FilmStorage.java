@@ -27,8 +27,6 @@ public interface FilmStorage {
 
     List<Film> getFilmsByIds(Set<Long> filmIds);
 
-    List<Film> getPopularFilms(int count);
-
     List<Film> getCommonFilms(Long userId, Long otherUserId);
 
     void removeFilmById(Long filmId);
