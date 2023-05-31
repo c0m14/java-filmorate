@@ -90,6 +90,7 @@ public class FilmService {
         filmFieldsValidator.checkIfPresentById(filmId);
 
         filmStorage.removeFilmById(filmId);
+        filmCatalogue.remove(filmId);
     }
 
     public List<Film> getFilmsByDirector(Integer directorId, String sort) {
