@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.service.validator;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
@@ -8,17 +10,21 @@ import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.film.h2.FilmGenreDao;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FilmFieldsValidator {
 
     @Qualifier("H2FilmRepository")
-    private final FilmStorage filmStorage;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    FilmStorage filmStorage;
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    FilmGenreDao filmGenreStorage;
 
     public void checkRequestFilm(Film film, RequestType requestType) throws InvalidFilmFieldsException {
         checkFilmId(film.getId(), requestType);
@@ -78,4 +84,12 @@ public class FilmFieldsValidator {
         }
     }
 
+    public void checkIfGenrePresentById(Integer genreId) {
+        filmGenreStorage.getGenreById(genreId);
+    }
+
+
+    public List<Film> checkIfAnyFilmPresentsByYear(Integer year) {
+        return filmStorage.getAnyFilmByYear(year);
+    }
 }

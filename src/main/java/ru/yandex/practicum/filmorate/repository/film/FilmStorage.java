@@ -22,11 +22,11 @@ public interface FilmStorage {
 
     boolean removeUserLikeFromFilm(Long filmId, Long userId);
 
+    List<Film> getPopularFilms(Integer count, Integer genreId, Integer year);
+
     Map<Long, Set<Long>> fillInUserLikes();
 
     List<Film> getFilmsByIds(Set<Long> filmIds);
-
-    List<Film> getPopularFilms(int count);
 
     List<Film> getCommonFilms(Long userId, Long otherUserId);
 
@@ -37,4 +37,6 @@ public interface FilmStorage {
     List<Film> getFilmsByIdListSortedByPopularity(List<Long> filmIds);
 
     void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue);
+
+    List<Film> getAnyFilmByYear(Integer year);
 }

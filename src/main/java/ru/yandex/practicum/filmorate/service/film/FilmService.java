@@ -29,8 +29,8 @@ public class FilmService {
 
     @Autowired
     public FilmService(@Qualifier("H2FilmRepository") FilmStorage filmStorage,
-            FilmFieldsValidator filmFieldsValidator,
-            UserFieldsValidator userFieldsValidator) {
+                       FilmFieldsValidator filmFieldsValidator,
+                       UserFieldsValidator userFieldsValidator) {
         this.filmStorage = filmStorage;
         this.filmFieldsValidator = filmFieldsValidator;
         this.userFieldsValidator = userFieldsValidator;
@@ -75,8 +75,20 @@ public class FilmService {
         filmStorage.removeUserLikeFromFilm(filmId, userId);
     }
 
-    public List<Film> getPopularFilms(int count) {
-        return filmStorage.getPopularFilms(count);
+    public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
+
+        List<Film> films;
+        if (genreId != null) {
+            filmFieldsValidator.checkIfGenrePresentById(genreId);
+        }
+        if (year != null) {
+            films = filmFieldsValidator.checkIfAnyFilmPresentsByYear(year);
+            if (films.isEmpty()) {
+                return films;
+            }
+        }
+        films = filmStorage.getPopularFilms(count, genreId, year);
+        return films;
     }
 
     public List<Film> getCommonFilms(Long userId, Long otherUserId) {

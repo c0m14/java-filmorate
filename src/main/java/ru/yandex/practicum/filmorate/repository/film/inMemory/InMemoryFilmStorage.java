@@ -63,7 +63,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
         throw new UnsupportedOperationException();
     }
 
@@ -88,6 +88,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Film> getAnyFilmByYear(Integer year) {
         throw new UnsupportedOperationException();
     }
 }
