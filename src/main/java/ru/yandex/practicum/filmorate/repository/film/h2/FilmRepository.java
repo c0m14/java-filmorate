@@ -229,6 +229,12 @@ public class FilmRepository implements FilmStorage {
             namedParam.addValue("genreId", genreId);
         }
 
+        if (year != null) {
+            yearQuery = "WHERE EXTRACT(YEAR from f.release_date) = " +
+                    year +
+                    " ";
+        }
+
         String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
                 "f.mpa_rating_id, mr.mpa_rating_name " +
                 "FROM film AS f " +
