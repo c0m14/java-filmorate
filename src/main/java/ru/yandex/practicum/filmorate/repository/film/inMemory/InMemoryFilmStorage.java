@@ -53,6 +53,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public Map<Long, Set<Long>> fillInUserLikes() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Film> getFilmsByIds(Set<Long> filmIds) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<Film> getPopularFilms(int count) {
         throw new UnsupportedOperationException();
     }
