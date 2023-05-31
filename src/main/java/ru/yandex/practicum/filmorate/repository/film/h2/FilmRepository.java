@@ -17,6 +17,9 @@ import ru.yandex.practicum.filmorate.model.CataloguedFilm;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.OperationType;
+import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
@@ -38,6 +41,7 @@ public class FilmRepository implements FilmStorage {
     private final RatingMpaDao ratingMpaDao;
     private final FilmGenreDao filmGenreDao;
     private final FilmLikesDao filmLikesDao;
+    private final FeedStorage feedStorage;
     private final DirectorDao directorDao;
 
     @Override
@@ -152,10 +156,12 @@ public class FilmRepository implements FilmStorage {
     @Override
     public void giveLikeFromUserToFilm(Long filmId, Long userId) {
         filmLikesDao.setFilmLike(filmId, userId);
+        feedStorage.addEvent(userId, filmId, EventType.LIKE, OperationType.ADD);
     }
 
     @Override
     public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
+        feedStorage.addEvent(userId, filmId, EventType.LIKE, OperationType.REMOVE);
         return filmLikesDao.removeFilmLike(filmId, userId);
     }
 
