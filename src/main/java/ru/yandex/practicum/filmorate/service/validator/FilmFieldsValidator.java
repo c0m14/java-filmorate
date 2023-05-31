@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.repository.film.h2.FilmGenreDao;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -86,10 +85,5 @@ public class FilmFieldsValidator {
 
     public void checkIfGenrePresentById(Integer genreId) {
         filmGenreStorage.getGenreById(genreId);
-    }
-
-
-    public List<Film> checkIfAnyFilmPresentsByYear(Integer year) {
-        return filmStorage.getAnyFilmByYear(year);
     }
 }

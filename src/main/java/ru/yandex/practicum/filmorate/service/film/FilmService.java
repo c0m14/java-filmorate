@@ -81,12 +81,6 @@ public class FilmService {
         if (genreId != null) {
             filmFieldsValidator.checkIfGenrePresentById(genreId);
         }
-        if (year != null) {
-            films = filmFieldsValidator.checkIfAnyFilmPresentsByYear(year);
-            if (films.isEmpty()) {
-                return films;
-            }
-        }
         films = filmStorage.getPopularFilms(count, genreId, year);
         return films;
     }
