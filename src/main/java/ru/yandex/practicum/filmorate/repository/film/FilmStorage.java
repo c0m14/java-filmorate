@@ -37,6 +37,4 @@ public interface FilmStorage {
     List<Film> getFilmsByIdListSortedByPopularity(List<Long> filmIds);
 
     void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue);
-
-    List<Film> getAnyFilmByYear(Integer year);
 }
