@@ -53,12 +53,12 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Map<Long, Set<Long>> fillInUserLikes() {
-        return new HashMap<>();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<Film> getFilmsByIds(Set<Long> filmIds) {
-        return new ArrayList<>();
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -132,24 +132,25 @@ public class FilmRepository implements FilmStorage {
 
     @Override
     public Map<Long, Set<Long>> fillInUserLikes() {
-        String sqlQuery = "SELECT uf.USER_ID, uf.FILM_ID " +
+        String sqlQuery = "SELECT u.USER_ID, uf.FILM_ID " +
                 "FROM USERS u " +
-                "INNER JOIN USER_FILM_LIKES uf ON u.USER_ID = uf.USER_ID";
+                "LEFT JOIN USER_FILM_LIKES uf ON u.USER_ID = uf.USER_ID";
 
         Map<Long, Set<Long>> usersLikedFilmsIds = new HashMap<>();
 
         SqlRowSet rowSet = jdbcTemplateNotNamedParameter.queryForRowSet(sqlQuery);
         while (rowSet.next()) {
             long userId = rowSet.getLong("USER_ID");
-            long filmId = rowSet.getLong("FILM_ID");
+            Long filmId = rowSet.getLong("FILM_ID");
 
-            Set<Long> filmsIds = usersLikedFilmsIds.get(userId);
-            if (filmsIds == null) {
-                filmsIds = new HashSet<>();
-                usersLikedFilmsIds.put(userId, filmsIds);
+            if (filmId != null) {
+                Set<Long> filmIds = usersLikedFilmsIds.get(userId);
+                if (filmIds == null) {
+                    filmIds = new HashSet<>();
+                    usersLikedFilmsIds.put(userId, filmIds);
+                }
+                filmIds.add(filmId);
             }
-
-            filmsIds.add(filmId);
         }
         return usersLikedFilmsIds;
     }

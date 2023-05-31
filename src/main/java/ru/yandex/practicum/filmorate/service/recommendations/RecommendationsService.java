@@ -12,21 +12,20 @@ import java.util.*;
 @Slf4j
 public class RecommendationsService {
 
-    private Map<Long, Set<Long>> usersLikedFilmsIds;
-    private FilmStorage filmStorage;
+    private final FilmStorage filmStorage;
 
     public RecommendationsService(@Qualifier("H2FilmRepository") FilmStorage filmStorage) {
         this.filmStorage = filmStorage;
     }
 
     public List<Film> getRecommendations(long userId) {
-        usersLikedFilmsIds = filmStorage.fillInUserLikes();
-        Set<Long> similarUsers = findUsersWithIntersectingLikes(userId);
-        Set<Long> recommendedFilmIds = findRecommendedFilmIds(userId, similarUsers);
+        Map<Long, Set<Long>> usersLikedFilmsIds = filmStorage.fillInUserLikes();
+        Set<Long> similarUsers = findUsersWithIntersectingLikes(userId, usersLikedFilmsIds);
+        Set<Long> recommendedFilmIds = findRecommendedFilmIds(userId, similarUsers, usersLikedFilmsIds);
         return filmStorage.getFilmsByIds(recommendedFilmIds);
     }
 
-    public Set<Long> findUsersWithIntersectingLikes(long userId) {
+    public Set<Long> findUsersWithIntersectingLikes(long userId, Map<Long, Set<Long>> usersLikedFilmsIds) {
         Set<Long> similarUsers = new HashSet<>();
         Set<Long> userLikedFilms = usersLikedFilmsIds.get(userId);
 
@@ -53,7 +52,7 @@ public class RecommendationsService {
         return similarUsers;
     }
 
-    public Set<Long> findRecommendedFilmIds(long userId, Set<Long> similarUsers) {
+    public Set<Long> findRecommendedFilmIds(long userId, Set<Long> similarUsers, Map<Long, Set<Long>> usersLikedFilmsIds) {
         Set<Long> recommendedFilmIds = new HashSet<>();
         Set<Long> userLikedFilms = usersLikedFilmsIds.get(userId);
 
