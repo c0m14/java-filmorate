@@ -82,8 +82,11 @@ public class FilmController {
             @RequestParam(required = false) Integer year
     ) {
         log.debug("Got request to get {} most popular film(s)", count);
-        if (genreId != null || year != null) {
-            log.debug("With genreId {} and year {}", genreId, year);
+        if (genreId != null) {
+            log.debug("With genreId {}, genreId");
+        }
+        if (year != null) {
+            log.debug("With year {}", year);
         }
         return filmService.getPopularFilms(count, genreId, year);
     }
