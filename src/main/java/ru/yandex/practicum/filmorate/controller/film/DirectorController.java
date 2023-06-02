@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.film.DirectorService;
 
@@ -35,13 +34,13 @@ public class DirectorController {
     }
 
     @PostMapping //POST /directors - Создание режиссёра
-    public Director add(@Valid @RequestBody Director director) throws InvalidFieldsException {
+    public Director add(@Valid @RequestBody Director director) {
         log.debug("Got request to create director: {}", director);
         return directorService.add(director);
     }
 
     @PutMapping //PUT /directors - Изменение режиссёра
-    public Director update(@Valid @RequestBody Director director) throws InvalidFieldsException {
+    public Director update(@Valid @RequestBody Director director) {
         log.debug("Got request to update film {}", director);
         return directorService.update(director);
     }
