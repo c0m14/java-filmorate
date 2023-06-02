@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
-import ru.yandex.practicum.filmorate.exception.UserNotExistException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.recommendations.RecommendationsService;
@@ -30,13 +29,13 @@ public class UserController {
     private final RecommendationsService recommendationsService;
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User user) throws InvalidUserFieldsException {
+    public User createUser(@Valid @RequestBody User user) {
         log.debug("Got request to create user: {}", user);
         return userService.addUser(user);
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) throws InvalidUserFieldsException, UserNotExistException {
+    public User updateUser(@Valid @RequestBody User user) {
         log.debug("Got request to update user: {}", user);
         return userService.updateUser(user);
     }

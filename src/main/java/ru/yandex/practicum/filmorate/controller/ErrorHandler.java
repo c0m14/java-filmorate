@@ -49,58 +49,9 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleUserNotExistException(UserNotExistException e) {
+    public ErrorResponse handleNotExistsException(NotExistsException e) {
         log.error(e.getMessage());
-        return new ErrorResponse("userId", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleFilmNotExistException(FilmNotExistException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("filmId", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleFilmGenreNotExistException(GenreNotExistsException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("genres", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleFilmMpaRatingNotExistException(MpaRatingNotExistException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("mpa", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleDirectorNotExistsException(DirectorNotExistsException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("director", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleReviewNotExistException(FilmReviewNotExistsException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("reviewId", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleReviewLikeNotExistException(FilmReviewLikeNotExistsException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("reviewLike record", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleReviewDislikeNotExistException(FilmReviewDislikeNotExistsException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("reviewDislike record", e.getMessage());
+        return new ErrorResponse(e.getFieldName(), e.getMessage());
     }
 
     @ExceptionHandler

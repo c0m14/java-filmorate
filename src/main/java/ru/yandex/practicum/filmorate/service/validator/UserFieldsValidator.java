@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
-import ru.yandex.practicum.filmorate.exception.UserNotExistException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
@@ -28,16 +28,18 @@ public class UserFieldsValidator {
 
     public void checkIfPresent(User user) {
         if (userStorage.getUserById(user.getId()).isEmpty()) {
-            throw new UserNotExistException(
-                    String.format("User with id %d doesn't exist", user.getId())
+            throw new NotExistsException(
+                    "User",
+                    String.format("User with id %d does not exist", user.getId())
             );
         }
     }
 
     public void checkIfPresentById(Long userId) {
         if (userStorage.getUserById(userId).isEmpty()) {
-            throw new UserNotExistException(
-                    String.format("User with id %d doesn't exist", userId)
+            throw new NotExistsException(
+                    "User",
+                    String.format("User with id %d does not exist", userId)
             );
         }
     }

@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
-import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
@@ -29,13 +27,13 @@ public class FilmController {
     private final FilmService filmService;
 
     @PostMapping
-    public Film createFilm(@Valid @RequestBody Film film) throws InvalidFilmFieldsException {
+    public Film createFilm(@Valid @RequestBody Film film) {
         log.debug("Got request to create film {}", film);
         return filmService.addFilm(film);
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) throws InvalidFilmFieldsException, FilmNotExistException {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         log.debug("Got request to update film {}", film);
         return filmService.updateFilm(film);
     }

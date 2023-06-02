@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.MpaRatingNotExistException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 
 import java.sql.ResultSet;
@@ -29,7 +29,10 @@ public class RatingMpaDao {
         try {
             ratingMPA = jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToMpa);
         } catch (EmptyResultDataAccessException e) {
-            throw new MpaRatingNotExistException(String.format("Mpa rating with id %d doesn't exist", mpaId));
+            throw new NotExistsException(
+                    "Mpa rating",
+                    String.format("Mpa rating with id %d does not exist", mpaId)
+            );
         }
 
         return ratingMPA;
@@ -46,8 +49,9 @@ public class RatingMpaDao {
         try {
             jdbcTemplate.update(sqlQuery, namedParams);
         } catch (DataIntegrityViolationException e) {
-            throw new MpaRatingNotExistException(
-                    String.format("Mpa rating with id %d doesn't exist", ratingMpaId)
+            throw new NotExistsException(
+                    "Mpa rating",
+                    String.format("Mpa rating with id %d does not exist", ratingMpaId)
             );
         }
     }

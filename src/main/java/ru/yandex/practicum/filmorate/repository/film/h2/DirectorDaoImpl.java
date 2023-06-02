@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.DirectorNotExistsException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 
@@ -35,7 +35,10 @@ public class DirectorDaoImpl implements DirectorDao {
             return director;
         } else {
             log.info("Director with id {} not found.", id);
-            throw new DirectorNotExistsException(String.format("Director with id %d not found.", id));
+            throw new NotExistsException(
+                    "Director",
+                    String.format("Director with id %d does not exist", id)
+            );
         }
     }
 
@@ -146,7 +149,10 @@ public class DirectorDaoImpl implements DirectorDao {
             return;
         }
         log.warn("Director with id {} not found.", directorId);
-        throw new DirectorNotExistsException(String.format("Director with id %d not found.", directorId));
+        throw new NotExistsException(
+                "Director",
+                String.format("Director with id %d does not exist", directorId)
+        );
     }
 }
 

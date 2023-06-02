@@ -5,7 +5,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.exception.DirectorNotExistsException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 
@@ -98,9 +98,9 @@ class DirectorDaoImplTest {
                 .build();
 
         directorDao.remove(directorTest.getId());
-        DirectorNotExistsException ex = Assertions.assertThrows(DirectorNotExistsException.class, () ->
+        NotExistsException ex = Assertions.assertThrows(NotExistsException.class, () ->
                 directorDao.findById(1));
-        assertEquals("Director with id 1 not found.", ex.getMessage());
+        assertEquals("Director with id 1 does not exist", ex.getMessage());
 
     }
 

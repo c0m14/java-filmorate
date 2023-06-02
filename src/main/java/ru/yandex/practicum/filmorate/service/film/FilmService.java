@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service.film;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.CataloguedFilm;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RequestType;
@@ -57,8 +57,10 @@ public class FilmService {
 
     public Film getFilmFromStorageById(Long filmId) {
         return filmStorage.getFilmByIdFull(filmId).orElseThrow(
-                () -> new FilmNotExistException(String.format("Film with id %d doesn't exist", filmId))
-        );
+                () -> new NotExistsException(
+                "Film",
+                String.format("Film with id %d does not exist", filmId)
+        ));
     }
 
     public void giveLikeFromUserToFilm(Long filmId, Long userId) {

@@ -2,9 +2,7 @@ package ru.yandex.practicum.filmorate.service.filmReview;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmReviewDislikeNotExistsException;
-import ru.yandex.practicum.filmorate.exception.FilmReviewLikeNotExistsException;
-import ru.yandex.practicum.filmorate.exception.FilmReviewNotExistsException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.FilmReview;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
@@ -40,7 +38,8 @@ public class FilmReviewService {
     public FilmReview getReviewById(Long reviewId) {
         return filmReviewStorage.getReviewById(reviewId)
                 .orElseThrow(
-                        () -> new FilmReviewNotExistsException(
+                        () -> new NotExistsException(
+                                "Review",
                                 String.format("Review with id %d does not exist", reviewId)
                         ));
     }
@@ -67,7 +66,8 @@ public class FilmReviewService {
 
         boolean isRecordFound = filmReviewStorage.removeLikeFromReview(reviewId, userId);
         if (!isRecordFound) {
-            throw new FilmReviewLikeNotExistsException(
+            throw new NotExistsException(
+                    "Like",
                     String.format("There is no like from user with id %d to review with id %d", userId, reviewId)
             );
         }
@@ -86,7 +86,8 @@ public class FilmReviewService {
 
         boolean isRecordFound = filmReviewStorage.removeDislikeFromReview(reviewId, userId);
         if (!isRecordFound) {
-            throw new FilmReviewDislikeNotExistsException(
+            throw new NotExistsException(
+                    "Dislike",
                     String.format("There is no dislike from user with id %d to review with id %d", userId, reviewId)
             );
         }

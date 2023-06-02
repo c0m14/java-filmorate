@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.exception.FilmReviewNotExistsException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.FilmReview;
 import ru.yandex.practicum.filmorate.model.feed.EventType;
 import ru.yandex.practicum.filmorate.model.feed.OperationType;
@@ -57,7 +57,8 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
         try {
             jdbcTemplate.update(sqlQuery, namedParams);
         } catch (DataIntegrityViolationException e) {
-            throw new FilmReviewNotExistsException(
+            throw new NotExistsException(
+                    "Review",
                     String.format("Review with id %d does not exist", filmReview.getReviewId())
             );
         }

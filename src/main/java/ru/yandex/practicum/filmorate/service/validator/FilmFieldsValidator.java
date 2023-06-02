@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmNotExistException;
 import ru.yandex.practicum.filmorate.exception.InvalidFilmFieldsException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
@@ -35,16 +35,18 @@ public class FilmFieldsValidator {
 
     public void checkIfPresent(Film film) {
         if (filmStorage.getFilmByIdFull(film.getId()).isEmpty()) {
-            throw new FilmNotExistException(
-                    String.format("Film with id %d doesn't exist", film.getId())
+            throw new NotExistsException(
+                    "Film",
+                    String.format("Film with id %d does not exist", film.getId())
             );
         }
     }
 
     public void checkIfPresentById(Long filmId) {
         if (filmStorage.getFilmByIdFull(filmId).isEmpty()) {
-            throw new FilmNotExistException(
-                    String.format("Film with id %d doesn't exist", filmId)
+            throw new NotExistsException(
+                    "Film",
+                    String.format("Film with id %d does not exist", filmId)
             );
         }
     }
