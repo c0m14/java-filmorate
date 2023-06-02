@@ -48,7 +48,6 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilmById(
-            @Valid
             @PathVariable("id") @Min(1) Long filmId
     ) {
         log.debug("Got request to get film with id: {}", filmId);
@@ -57,7 +56,6 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void giveLikeFromUserToFilm(
-            @Valid
             @PathVariable("id") Long filmId,
             @PathVariable("userId") Long userId
     ) {
@@ -67,7 +65,6 @@ public class FilmController {
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeUserLikeFromFilm(
-            @Valid
             @PathVariable("id") Long filmId,
             @PathVariable("userId") Long userId
     ) {
@@ -102,7 +99,6 @@ public class FilmController {
 
     @DeleteMapping("/{filmId}")
     public void removeFilmById(
-            @Valid
             @PathVariable("filmId") Long filmId
     ) {
         log.debug("Got request to remove film with id {}", filmId);
@@ -111,7 +107,6 @@ public class FilmController {
 
     @GetMapping("/director/{directorId}") // GET /films/director/{directorId}?sortBy=[year,likes]
     public List<Film> getFilmsByDirector(
-            @Valid
             @PathVariable("directorId") @Min(1) Integer directorId,
             @RequestParam(defaultValue = SORT_BY_YEAR, required = false) String sortBy
     ) {

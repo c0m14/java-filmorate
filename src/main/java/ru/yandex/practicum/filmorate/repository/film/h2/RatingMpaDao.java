@@ -21,10 +21,6 @@ public class RatingMpaDao {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     public RatingMPA getMpaByIdFromDb(int mpaId) {
-        if (mpaId == 0) {
-            return null;
-        }
-
         String sqlQuery = "SELECT mpa_rating_id, mpa_rating_name FROM mpa_rating " +
                 "WHERE mpa_rating_id = :mpaRatingId";
         SqlParameterSource namedParam = new MapSqlParameterSource("mpaRatingId", mpaId);

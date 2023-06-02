@@ -1280,7 +1280,7 @@ public class FilmTest {
     }
 
     @Test
-    public void shouldReturn400IfGenreIdIsZero() {
+    public void shouldReturn404IfGenreIdIsZero() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetGenreById(0),
@@ -1288,11 +1288,11 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn400IfGenreIdIsNegative() {
+    public void shouldReturn404IfGenreIdIsNegative() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetGenreById(-1),
@@ -1300,7 +1300,7 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -1353,7 +1353,7 @@ public class FilmTest {
     }
 
     @Test
-    public void shouldReturn400IfMpaIdIsZero() {
+    public void shouldReturn404IfMpaIdIsZero() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetMpaById(0),
@@ -1361,11 +1361,11 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn400IfMpaIdIsNegative() {
+    public void shouldReturn404IfMpaIdIsNegative() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetMpaById(-1),
@@ -1373,7 +1373,7 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test

@@ -48,14 +48,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User findUserById(@Valid @PathVariable("id") @Min(1) Long id) {
+    public User findUserById(@PathVariable("id") @Min(1) Long id) {
         log.debug("Got request to find user with id: {}", id);
         return userService.getUserFromStorageById(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addUserFriend(
-            @Valid
             @PathVariable("id") Long userId,
             @PathVariable("friendId") Long friendId
     ) {
@@ -65,7 +64,6 @@ public class UserController {
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriendFromUser(
-            @Valid
             @PathVariable("id") Long userId,
             @PathVariable("friendId") Long friendId
     ) {
@@ -75,7 +73,6 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public List<User> getFriendsForUser(
-            @Valid
             @PathVariable("id") @Min(1) Long userId
 
     ) {
@@ -85,7 +82,6 @@ public class UserController {
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(
-            @Valid
             @PathVariable("id") @Min(1) Long userId,
             @PathVariable("otherId") @Min(1) Long otherUserId
     ) {
@@ -95,7 +91,6 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public void removeUserById(
-            @Valid
             @PathVariable("userId") Long userId
     ) {
         log.debug("Got request to delete user with id: {}", userId);
@@ -104,7 +99,6 @@ public class UserController {
 
     @GetMapping("/{id}/feed")
     public List<Feed> getUserFeed(
-            @Valid
             @PathVariable("id") @Min(1) Long userId
     ) {
         log.debug("Got request to get feed list for user with id: {}", userId);

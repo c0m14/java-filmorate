@@ -28,7 +28,6 @@ public class DirectorController {
 
     @GetMapping("/{id}") //GET /directors/{id}- Получение режиссёра по id
     public Director findById(
-            @Valid
             @PathVariable("id") @Min(1) Integer directorId
     ) {
         log.debug("Got request to get director with id: {}", directorId);
@@ -49,7 +48,6 @@ public class DirectorController {
 
     @DeleteMapping("/{id}") //DELETE /directors/{id} - Удаление режиссёра
     public void remove(
-            @Valid
             @PathVariable("id") @Min(1) Integer directorId
     ) {
         log.debug("Got request to remove director with id {}", directorId);

@@ -43,7 +43,6 @@ public class FilmReviewController {
 
     @GetMapping("/{id}")
     public FilmReview getReviewById(
-            @Valid
             @PathVariable("id") Long reviewId
     ) {
         log.debug("Got request to get review with id {}", reviewId);
