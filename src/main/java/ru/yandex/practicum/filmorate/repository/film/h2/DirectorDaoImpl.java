@@ -121,10 +121,8 @@ public class DirectorDaoImpl implements DirectorDao {
         String sqlQuery = "SELECT fd.film_id, d.director_id, d.director_name " +
                 "FROM directors AS d " +
                 "RIGHT JOIN film_directors AS fd ON d.director_id = fd.director_id " +
-                "WHERE d.director_id IN " +
-                "(SELECT director_id " +
-                "FROM film_directors AS fd " +
-                "WHERE film_id IN (:filmIds))";
+                "WHERE film_id IN (:filmIds)";
+
         SqlParameterSource namedParams = new MapSqlParameterSource("filmIds", filmsIds);
         Map<Long, Set<Director>> filmsWithDirectors = new HashMap<>();
 
