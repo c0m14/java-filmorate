@@ -13,12 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.FriendConfirmationStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.Feed;
 import ru.yandex.practicum.filmorate.model.feed.OperationType;
 import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,7 +103,14 @@ public class UserRepository implements UserStorage {
 
         jdbcTemplate.update(sqlQueryAddUserRecord, namedParams);
         jdbcTemplate.update(sqlQueryAddFriendRecord, namedParams);
-        feedStorage.addEvent(userId, friendId, EventType.FRIEND, OperationType.ADD);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(OperationType.ADD)
+                .entityId(friendId)
+                .build();
+        feedStorage.addEvent(feed);
     }
 
     @Override
@@ -168,7 +177,13 @@ public class UserRepository implements UserStorage {
 
         Optional<FriendConfirmationStatus> currentUserFriendStatus = getFriendshipStatus(userId, friendId);
         Optional<FriendConfirmationStatus> currentFriendUserStatus = getFriendshipStatus(friendId, userId);
-
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(OperationType.REMOVE)
+                .entityId(friendId)
+                .build();
         if (
                 (currentUserFriendStatus.isEmpty() || currentFriendUserStatus.isEmpty()) ||
                         currentUserFriendStatus.get().equals(FriendConfirmationStatus.WAITING_FOR_APPROVAL)
@@ -178,13 +193,13 @@ public class UserRepository implements UserStorage {
 
         if (currentFriendUserStatus.get().equals(FriendConfirmationStatus.CONFIRMED) &&
                 currentUserFriendStatus.get().equals(FriendConfirmationStatus.CONFIRMED)) {
-            feedStorage.addEvent(userId, friendId, EventType.FRIEND, OperationType.REMOVE);
+            feedStorage.addEvent(feed);
             return jdbcTemplate.update(changeFriendStatusForPending, namedParams) > 0;
         }
 
         if (currentUserFriendStatus.get().equals(FriendConfirmationStatus.CONFIRMED) &&
                 currentFriendUserStatus.get().equals(FriendConfirmationStatus.WAITING_FOR_APPROVAL)) {
-            feedStorage.addEvent(userId, friendId, EventType.FRIEND, OperationType.REMOVE);
+            feedStorage.addEvent(feed);
             return jdbcTemplate.update(deleteBothRecordsSqlQuery, namedParams) > 0;
         }
 

@@ -12,12 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.FilmReview;
 import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.Feed;
 import ru.yandex.practicum.filmorate.model.feed.OperationType;
 import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +40,14 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
 
         Long reviewId = simpleJdbcInsert.executeAndReturnKey(filmReview.mapToDb()).longValue();
         filmReview.setReviewId(reviewId);
-        feedStorage.addEvent(filmReview.getUserId(), filmReview.getReviewId(), EventType.REVIEW, OperationType.ADD);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(filmReview.getUserId())
+                .eventType(EventType.REVIEW)
+                .operation(OperationType.ADD)
+                .entityId(filmReview.getReviewId())
+                .build();
+        feedStorage.addEvent(feed);
         return filmReview;
     }
 
@@ -66,7 +75,14 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
         //Возвращаем отзыв из БД, так как в полученном могут быть некорректные поля
         FilmReview filmReviewFromDb = getReviewById(reviewId).get();
         filmReviewFromDb.setUseful(calculateUseful(reviewId));
-        feedStorage.addEvent(filmReviewFromDb.getUserId(), filmReviewFromDb.getReviewId(), EventType.REVIEW, OperationType.UPDATE);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(filmReviewFromDb.getUserId())
+                .eventType(EventType.REVIEW)
+                .operation(OperationType.UPDATE)
+                .entityId(filmReviewFromDb.getReviewId())
+                .build();
+        feedStorage.addEvent(feed);
         return filmReviewFromDb;
     }
 
@@ -184,7 +200,14 @@ public class FilmFilmReviewRepository implements FilmReviewStorage {
         String sqlQuery = "DELETE FROM review " +
                 "WHERE review_id = :reviewId";
         MapSqlParameterSource namedParam = new MapSqlParameterSource("reviewId", reviewId);
-        feedStorage.addEvent(userId, reviewId, EventType.REVIEW, OperationType.REMOVE);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.REVIEW)
+                .operation(OperationType.REMOVE)
+                .entityId(reviewId)
+                .build();
+        feedStorage.addEvent(feed);
         return jdbcTemplate.update(sqlQuery, namedParam) > 0;
     }
 

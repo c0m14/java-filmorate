@@ -68,13 +68,6 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleFeedNotExistException(FeedStorageEmptyException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse("feed", e.getMessage());
-    }
-
     @Getter
     @AllArgsConstructor
     private class ErrorResponseList {
