@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service.film;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.CataloguedFilm;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -109,6 +110,24 @@ public class FilmService {
         return filmStorage.getFilmsByIdListSortedByPopularity(
                 getFilmIdListBySearchInCatalogue(query, by)
         );
+    }
+
+    public List<String> validateAndSetParameterByForSearch(List<String> by) {
+        List<String> result;
+        if (by == null || by.isEmpty()) {
+            result = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
+        } else if (by.contains("title")) {
+            if (by.contains("director")) {
+                result = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
+            } else {
+                result = List.of(SEARCH_BY_TITLE);
+            }
+        } else if (by.contains("director")) {
+            result = List.of(SEARCH_BY_DIRECTOR);
+        } else {
+            throw new IncorrectParameterException("By", "Should be title, director or both");
+        }
+        return result;
     }
 
     private List<Long> getFilmIdListBySearchInCatalogue(String query, List<String> by) {

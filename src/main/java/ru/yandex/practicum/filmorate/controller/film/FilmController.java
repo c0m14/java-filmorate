@@ -15,8 +15,6 @@ import java.util.List;
 
 import static ru.yandex.practicum.filmorate.model.Constants.SORTS;
 import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_YEAR;
-import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_TITLE;
-import static ru.yandex.practicum.filmorate.model.Constants.SEARCH_BY_DIRECTOR;
 
 @Slf4j
 @RestController
@@ -78,7 +76,7 @@ public class FilmController {
     ) {
         log.debug("Got request to get {} most popular film(s)", count);
         if (genreId != null) {
-            log.debug("With genreId {}, genreId");
+            log.debug("With genreId {}", genreId);
         }
         if (year != null) {
             log.debug("With year {}", year);
@@ -129,21 +127,8 @@ public class FilmController {
         stringBuilder.append(" with substring ").append(query);
         log.debug(stringBuilder.toString());
 
-        if (by == null || by.isEmpty()) {
-            by = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
-        } else if (by.contains("title")) {
-            if (by.contains("director")) {
-                by = List.of(SEARCH_BY_TITLE, SEARCH_BY_DIRECTOR);
-            } else {
-                by = List.of(SEARCH_BY_TITLE);
-            }
-        } else if (by.contains("director")) {
-            by = List.of(SEARCH_BY_DIRECTOR);
-        } else {
-            throw new IncorrectParameterException("By", "Should be title, director or both");
-        }
+        by = filmService.validateAndSetParameterByForSearch(by);
 
         return filmService.searchFilms(query.toLowerCase(), by);
     }
 }
-

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @RequiredArgsConstructor
@@ -14,7 +15,10 @@ public class CataloguedFilm {
 
     public CataloguedFilm(Film film) {
         filmName = film.getName().toLowerCase();
-        film.getDirectors().forEach(director -> filmDirectors.add(director.getName().toLowerCase()));
+        filmDirectors.addAll(film.getDirectors()
+                .stream()
+                .map(director -> director.getName().toLowerCase())
+                .collect(Collectors.toList()));
     }
 
     public void addDirector(String director) {
