@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-class FilmLikesDao {
+public class FilmLikesDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 

@@ -8,10 +8,16 @@ import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.CataloguedFilm;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RequestType;
+import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.Feed;
+import ru.yandex.practicum.filmorate.model.feed.OperationType;
+import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.film.h2.FilmLikesDao;
 import ru.yandex.practicum.filmorate.service.validator.FilmFieldsValidator;
 import ru.yandex.practicum.filmorate.service.validator.UserFieldsValidator;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +32,21 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final FilmFieldsValidator filmFieldsValidator;
     private final UserFieldsValidator userFieldsValidator;
+    private final FilmLikesDao filmLikesDao;
+    private final FeedStorage feedStorage;
     private final Map<Long, CataloguedFilm> filmCatalogue = new HashMap<>();
 
     @Autowired
     public FilmService(@Qualifier("H2FilmRepository") FilmStorage filmStorage,
                        FilmFieldsValidator filmFieldsValidator,
-                       UserFieldsValidator userFieldsValidator) {
+                       UserFieldsValidator userFieldsValidator,
+                       FilmLikesDao filmLikesDao,
+                       FeedStorage feedStorage) {
         this.filmStorage = filmStorage;
         this.filmFieldsValidator = filmFieldsValidator;
         this.userFieldsValidator = userFieldsValidator;
+        this.filmLikesDao = filmLikesDao;
+        this.feedStorage = feedStorage;
         initiateFilmCatalogue();
     }
 
@@ -68,14 +80,30 @@ public class FilmService {
         userFieldsValidator.checkIfPresentById(userId);
         filmFieldsValidator.checkIfPresentById(filmId);
 
-        filmStorage.giveLikeFromUserToFilm(filmId, userId);
+        filmLikesDao.setFilmLike(filmId, userId);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.ADD)
+                .entityId(filmId)
+                .build();
+        feedStorage.addEvent(feed);
     }
 
     public void removeUserLikeFromFilm(Long filmId, Long userId) {
         filmFieldsValidator.checkIfPresentById(filmId);
         userFieldsValidator.checkIfPresentById(userId);
 
-        filmStorage.removeUserLikeFromFilm(filmId, userId);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.REMOVE)
+                .entityId(filmId)
+                .build();
+        feedStorage.addEvent(feed);
+        filmLikesDao.removeFilmLike(filmId, userId);
     }
 
     public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {

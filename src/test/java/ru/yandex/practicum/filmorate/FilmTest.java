@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.film.h2.RatingMpaDao;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 import ru.yandex.practicum.filmorate.service.recommendations.RecommendationsService;
 import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
@@ -34,6 +35,8 @@ public class FilmTest {
     private URI usersUrl;
     @Autowired
     private TestRestTemplate testRestTemplate;
+    @Autowired
+    private FilmService filmService;
     @Autowired
     @Qualifier("H2FilmRepository")
     private FilmStorage filmStorage;
@@ -1079,7 +1082,7 @@ public class FilmTest {
     public void shouldRemoveUserLikeFromFilm() {
         Long toBeLikedFilmId = testDataProducer.addDefaultFilmToDB();
         Long userId = testDataProducer.addDefaultUserToDB();
-        filmStorage.giveLikeFromUserToFilm(toBeLikedFilmId, userId);
+        filmService.giveLikeFromUserToFilm(toBeLikedFilmId, userId);
 
         testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(toBeLikedFilmId, userId),

@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.film.h2.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -35,6 +36,7 @@ public class FeedStorageTest {
 
     @Qualifier("H2FilmRepository")
     private final FilmRepository filmRepository;
+    private final FilmService filmService;
 
     @Test
     @Order(1)
@@ -93,7 +95,7 @@ public class FeedStorageTest {
                 .genres(Set.of(new Genre(2, "Драма"), new Genre(6, "Боевик")))
                 .build();
         filmRepository.addFilm(film);
-        filmRepository.giveLikeFromUserToFilm(1L, 1L);
+        filmService.giveLikeFromUserToFilm(1L, 1L);
         Feed feed = Feed.builder()
                 .timestamp(feedStorage.getUserFeed(1L).get(2).getTimestamp())
                 .userId(1L)
@@ -108,7 +110,7 @@ public class FeedStorageTest {
     @Test
     @Order(4)
     public void removeLikeFeedTest() {
-        filmRepository.removeUserLikeFromFilm(1L, 1L);
+        filmService.removeUserLikeFromFilm(1L, 1L);
         Feed feed = Feed.builder()
                 .timestamp(feedStorage.getUserFeed(1L).get(3).getTimestamp())
                 .userId(1L)

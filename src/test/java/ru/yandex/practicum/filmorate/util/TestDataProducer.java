@@ -129,7 +129,7 @@ public class TestDataProducer {
         }
         for (Long filmsId : filmsIds) {
             for (Long usersId : usersIds) {
-                filmStorage.giveLikeFromUserToFilm(filmsId, usersId);
+                filmService.giveLikeFromUserToFilm(filmsId, usersId);
             }
             usersIds.remove(usersIds.size() - 1);
         }
@@ -144,7 +144,7 @@ public class TestDataProducer {
         }
         for (long i = 1; i < 4; i++) {
             for (long j = i; j < 4; j++) {
-                filmStorage.giveLikeFromUserToFilm(j, i);
+                filmService.giveLikeFromUserToFilm(j, i);
             }
         }
     }
@@ -188,8 +188,8 @@ public class TestDataProducer {
                 .email("email2@domen.com")
                 .birthday(LocalDate.of(1990, 1, 1))
                 .build());
-        filmStorage.giveLikeFromUserToFilm(1L, 1L);
-        filmStorage.giveLikeFromUserToFilm(2L, 1L);
-        filmStorage.giveLikeFromUserToFilm(2L, 2L);
+        filmService.giveLikeFromUserToFilm(1L, 1L);
+        filmService.giveLikeFromUserToFilm(2L, 1L);
+        filmService.giveLikeFromUserToFilm(2L, 2L);
     }
 }

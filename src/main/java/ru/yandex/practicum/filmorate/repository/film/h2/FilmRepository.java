@@ -17,16 +17,11 @@ import ru.yandex.practicum.filmorate.model.CataloguedFilm;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
-import ru.yandex.practicum.filmorate.model.feed.EventType;
-import ru.yandex.practicum.filmorate.model.feed.Feed;
-import ru.yandex.practicum.filmorate.model.feed.OperationType;
-import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,7 +38,6 @@ public class FilmRepository implements FilmStorage {
     private final RatingMpaDao ratingMpaDao;
     private final FilmGenreDao filmGenreDao;
     private final FilmLikesDao filmLikesDao;
-    private final FeedStorage feedStorage;
     private final DirectorDao directorDao;
 
     @Override
@@ -153,32 +147,6 @@ public class FilmRepository implements FilmStorage {
         filmOptional.ifPresent(film -> fetchAdditionalParamsToFilmsList(Collections.singletonList(film)));
 
         return filmOptional;
-    }
-
-    @Override
-    public void giveLikeFromUserToFilm(Long filmId, Long userId) {
-        filmLikesDao.setFilmLike(filmId, userId);
-        Feed feed = Feed.builder()
-                .timestamp(Instant.now().toEpochMilli())
-                .userId(userId)
-                .eventType(EventType.LIKE)
-                .operation(OperationType.ADD)
-                .entityId(filmId)
-                .build();
-        feedStorage.addEvent(feed);
-    }
-
-    @Override
-    public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
-        Feed feed = Feed.builder()
-                .timestamp(Instant.now().toEpochMilli())
-                .userId(userId)
-                .eventType(EventType.LIKE)
-                .operation(OperationType.REMOVE)
-                .entityId(filmId)
-                .build();
-        feedStorage.addEvent(feed);
-        return filmLikesDao.removeFilmLike(filmId, userId);
     }
 
     @Override

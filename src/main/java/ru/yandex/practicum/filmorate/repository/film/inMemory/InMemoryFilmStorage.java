@@ -43,16 +43,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void giveLikeFromUserToFilm(Long filmId, Long userId) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Map<Long, Set<Long>> fillInUserLikes() {
         throw new UnsupportedOperationException();
     }

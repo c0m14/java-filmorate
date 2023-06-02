@@ -18,10 +18,6 @@ public interface FilmStorage {
 
     Optional<Film> getFilmByIdFull(Long filmId);
 
-    void giveLikeFromUserToFilm(Long filmId, Long userId);
-
-    boolean removeUserLikeFromFilm(Long filmId, Long userId);
-
     List<Film> getPopularFilms(Integer count, Integer genreId, Integer year);
 
     Map<Long, Set<Long>> fillInUserLikes();
