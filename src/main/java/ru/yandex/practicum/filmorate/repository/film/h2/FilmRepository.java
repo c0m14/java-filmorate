@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.Feed;
 import ru.yandex.practicum.filmorate.model.feed.OperationType;
 import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
@@ -25,6 +26,7 @@ import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -156,12 +158,26 @@ public class FilmRepository implements FilmStorage {
     @Override
     public void giveLikeFromUserToFilm(Long filmId, Long userId) {
         filmLikesDao.setFilmLike(filmId, userId);
-        feedStorage.addEvent(userId, filmId, EventType.LIKE, OperationType.ADD);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.ADD)
+                .entityId(filmId)
+                .build();
+        feedStorage.addEvent(feed);
     }
 
     @Override
     public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
-        feedStorage.addEvent(userId, filmId, EventType.LIKE, OperationType.REMOVE);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.REMOVE)
+                .entityId(filmId)
+                .build();
+        feedStorage.addEvent(feed);
         return filmLikesDao.removeFilmLike(filmId, userId);
     }
 
