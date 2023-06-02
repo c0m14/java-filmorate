@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.repository.film.h2;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -13,6 +14,8 @@ import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.*;
 
 @Component
@@ -90,12 +93,19 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public void addDirectorsToFilm(Long filmId, Set<Integer> directorsIds) {
-        String sqlQuery = "MERGE INTO film_directors " +
-                "VALUES (?, ?)";
-        for (Integer directorId : directorsIds) {
-            jdbcTemplate.update(sqlQuery, filmId, directorId);
-            log.info("Director id {} added to film id {}.", directorId, filmId);
-        }
+        List<Integer> directorsIdList = new ArrayList<>(directorsIds);
+        jdbcTemplate.batchUpdate("MERGE INTO film_directors VALUES(?, ?)", new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                preparedStatement.setLong(1, filmId);
+                preparedStatement.setInt(2, directorsIdList.get(i));
+            }
+
+            @Override
+            public int getBatchSize() {
+                return directorsIdList.size();
+            }
+        });
     }
 
     @Override
