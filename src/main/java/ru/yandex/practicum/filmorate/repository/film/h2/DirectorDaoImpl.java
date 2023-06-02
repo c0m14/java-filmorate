@@ -29,19 +29,13 @@ public class DirectorDaoImpl implements DirectorDao {
     public Director findById(Integer id) {
         SqlRowSet directorRows = jdbcTemplate.queryForRowSet("select director_id, director_name from directors where director_id = ?", id);
         if (directorRows.next()) {
-            Director director = Director.builder()
-                    .id(directorRows.getInt("director_id"))
-                    .name(directorRows.getString("director_name").trim())
-                    .build();
+            Director director = Director.builder().id(directorRows.getInt("director_id")).name(directorRows.getString("director_name").trim()).build();
 
             log.info("Director found: {} {}", director.getId(), director.getName());
             return director;
         } else {
             log.info("Director with id {} not found.", id);
-            throw new NotExistsException(
-                    "Director",
-                    String.format("Director with id %d does not exist", id)
-            );
+            throw new NotExistsException("Director", String.format("Director with id %d does not exist", id));
         }
     }
 
@@ -51,10 +45,7 @@ public class DirectorDaoImpl implements DirectorDao {
         List<Director> directors = new ArrayList<>();
 
         while (directorRows.next()) {
-            Director director = Director.builder()
-                    .id(directorRows.getInt("director_id"))
-                    .name(directorRows.getString("director_name").trim())
-                    .build();
+            Director director = Director.builder().id(directorRows.getInt("director_id")).name(directorRows.getString("director_name").trim()).build();
             directors.add(director);
         }
         log.info("Got the list of {} directors", directors.size());
@@ -63,9 +54,7 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public Director add(Director director) {
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("directors")
-                .usingGeneratedKeyColumns("director_id");
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate).withTableName("directors").usingGeneratedKeyColumns("director_id");
         director.setId((int) simpleJdbcInsert.executeAndReturnKey(director.toMap()).longValue());
         log.info("Director created: {} {}.", director.getId(), director.getName());
         return director;
@@ -74,8 +63,7 @@ public class DirectorDaoImpl implements DirectorDao {
     @Override
     public Director update(Director director) {
         checkDirectorById(director.getId());
-        String sqlQuery = "MERGE INTO directors (director_id, director_name) " +
-                "VALUES (?, ?);";
+        String sqlQuery = "MERGE INTO directors (director_id, director_name) " + "VALUES (?, ?);";
         jdbcTemplate.update(sqlQuery, director.getId(), director.getName());
 
         log.info("Director updated: {} {}", director.getId(), director.getName());
@@ -85,8 +73,7 @@ public class DirectorDaoImpl implements DirectorDao {
     @Override
     public void remove(Integer directorId) {
         checkDirectorById(directorId);
-        String sqlQuery = "DELETE FROM directors " +
-                "WHERE director_id = ?;";
+        String sqlQuery = "DELETE FROM directors " + "WHERE director_id = ?;";
         jdbcTemplate.update(sqlQuery, directorId);
         log.info("Director id {} deleted", directorId);
     }
@@ -110,41 +97,29 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public void removeDirectorsFromFilm(Long filmId) {
-        String sqlQuery = "DELETE FROM film_directors " +
-                "WHERE film_id = ?;";
+        String sqlQuery = "DELETE FROM film_directors " + "WHERE film_id = ?;";
         jdbcTemplate.update(sqlQuery, filmId);
         log.info("Directors removed for film id {}", filmId);
     }
 
     @Override
     public Map<Long, Set<Director>> getDirectorsForFilms(List<Long> filmsIds) {
-        String sqlQuery = "SELECT fd.film_id, d.director_id, d.director_name " +
-                "FROM directors AS d " +
-                "RIGHT JOIN film_directors AS fd ON d.director_id = fd.director_id " +
-                "WHERE film_id IN (:filmIds)";
+        String sqlQuery = "SELECT fd.film_id, d.director_id, d.director_name " + "FROM directors AS d " + "RIGHT JOIN film_directors AS fd ON d.director_id = fd.director_id " + "WHERE film_id IN (:filmIds)";
 
         SqlParameterSource namedParams = new MapSqlParameterSource("filmIds", filmsIds);
         Map<Long, Set<Director>> filmsWithDirectors = new HashMap<>();
 
-        List<Map<Long, Director>> filmIdWithDirectorList = namedParameterJdbcTemplate.query(sqlQuery, namedParams, ((rs, rowNum) -> Collections.singletonMap(
-                rs.getLong("film_id"),
-                Director.builder()
-                        .id(rs.getInt("director_id"))
-                        .name(rs.getString("director_name"))
-                        .build())));
+        namedParameterJdbcTemplate.query(sqlQuery, namedParams, rs -> {
+            Director director = Director.builder().id(rs.getInt("director_id")).name(rs.getString("director_name")).build();
+            if (filmsWithDirectors.containsKey(rs.getLong("film_id"))) {
+                filmsWithDirectors.get(rs.getLong("film_id")).add(director);
+            } else {
+                Set<Director> directors = new HashSet<>();
+                directors.add(director);
+                filmsWithDirectors.put(rs.getLong("film_id"), directors);
+            }
+        });
 
-        filmIdWithDirectorList.stream()
-                .flatMap(map -> map.entrySet().stream())
-                .forEach((entry -> {
-                    if (filmsWithDirectors.containsKey(entry.getKey())) {
-                        filmsWithDirectors.get(entry.getKey()).add(entry.getValue());
-                    } else {
-                        Set<Director> directors = new HashSet<>();
-                        directors.add(entry.getValue());
-                        filmsWithDirectors.put(entry.getKey(), directors);
-                    }
-                }
-                ));
         return filmsWithDirectors;
     }
 
@@ -157,10 +132,7 @@ public class DirectorDaoImpl implements DirectorDao {
             return;
         }
         log.warn("Director with id {} not found.", directorId);
-        throw new NotExistsException(
-                "Director",
-                String.format("Director with id %d does not exist", directorId)
-        );
+        throw new NotExistsException("Director", String.format("Director with id %d does not exist", directorId));
     }
 }
 
