@@ -16,6 +16,7 @@ import java.util.Set;
 public class RecommendationsService {
 
     private final FilmStorage filmStorage;
+
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
