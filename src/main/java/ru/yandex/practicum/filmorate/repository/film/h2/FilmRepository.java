@@ -161,17 +161,16 @@ public class FilmRepository implements FilmStorage {
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, namedParams);
         while (rowSet.next()) {
-            long userId = rowSet.getLong("USER_ID");
-            Long filmId = rowSet.getLong("FILM_ID");
 
-            if (filmId != null) {
-                Set<Long> filmIds = usersLikedFilmsIds.get(userId);
-                if (filmIds == null) {
-                    filmIds = new HashSet<>();
-                    usersLikedFilmsIds.put(userId, filmIds);
-                }
-                filmIds.add(filmId);
+            long userId = rowSet.getLong("USER_ID");
+            long filmId = rowSet.getLong("FILM_ID");
+
+            if (rowSet.wasNull()) {
+                continue;
             }
+
+            Set<Long> filmIds = usersLikedFilmsIds.computeIfAbsent(userId, k -> new HashSet<>());
+            filmIds.add(filmId);
         }
         return usersLikedFilmsIds;
     }
