@@ -18,7 +18,7 @@ public class UserFieldsValidator {
     private final UserStorage userStorage;
 
     public void checkUserFields(User user, RequestType requestType) {
-        checkUserId(user.getId(), requestType); 
+        checkUserId(user.getId(), requestType);
         if (requestType.equals(RequestType.UPDATE)) {
             checkIfPresent(user);
         }
