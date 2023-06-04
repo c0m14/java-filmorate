@@ -12,11 +12,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.CataloguedFilm;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
@@ -294,7 +290,7 @@ public class FilmRepository implements FilmStorage {
         } else if (sort.equals(SORT_BY_LIKES)) {
             sqlQuery = sqlQuery + "ORDER BY COUNT(likes.user_id) ASC;";
         } else {
-            throw new InvalidFieldsException("Constants", "Wrong sort type in the endpoint");
+            throw new InvalidFieldsException("Film", "Constants", "Wrong sort type in the endpoint");
         }
 
         SqlParameterSource namedParam = new MapSqlParameterSource()

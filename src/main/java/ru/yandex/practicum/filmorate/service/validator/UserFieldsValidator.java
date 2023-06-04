@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.InvalidUserFieldsException;
+import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
 import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.User;
@@ -17,8 +17,8 @@ public class UserFieldsValidator {
     @Qualifier("H2UserRepository")
     private final UserStorage userStorage;
 
-    public void checkUserFields(User user, RequestType requestType) throws InvalidUserFieldsException {
-        checkUserId(user.getId(), requestType);
+    public void checkUserFields(User user, RequestType requestType) {
+        checkUserId(user.getId(), requestType); 
         if (requestType.equals(RequestType.UPDATE)) {
             checkIfPresent(user);
         }
@@ -47,17 +47,19 @@ public class UserFieldsValidator {
     private void checkUserId(Long id, RequestType requestType) {
         if (requestType.equals(RequestType.CREATE)) {
             if (id != null) {
-                throw new InvalidUserFieldsException("Id", "\"Id\" shouldn't be sent while creation");
+                throw new InvalidFieldsException("User", "id", "\"Id\" shouldn't be sent while creation");
             }
         } else if (requestType.equals(RequestType.UPDATE)) {
             if (id == null) {
-                throw new InvalidUserFieldsException(
+                throw new InvalidFieldsException(
+                        "User",
                         "id",
                         "\"Id\" shouldn't be empty in update request"
                 );
             }
             if (id <= 0) {
-                throw new InvalidUserFieldsException(
+                throw new InvalidFieldsException(
+                        "User",
                         "id",
                         String.format("\"Id\" isn't positive: %d", id)
                 );
@@ -67,7 +69,8 @@ public class UserFieldsValidator {
 
     private void checkUserLogin(String login) {
         if (login.contains(" ")) {
-            throw new InvalidUserFieldsException(
+            throw new InvalidFieldsException(
+                    "User",
                     "login",
                     String.format("\"Login\" shouldn't contain spaces: %s", login)
             );

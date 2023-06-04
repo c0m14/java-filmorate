@@ -8,7 +8,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
+import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 
 import javax.validation.ConstraintViolationException;
 import java.util.List;
@@ -30,15 +32,13 @@ public class ErrorHandler {
 
     }
 
-    @ExceptionHandler({
-            InvalidUserFieldsException.class,
-            InvalidFilmFieldsException.class,
-            InvalidFilmReviewFieldsException.class
-    })
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleInvalidFieldsExceptionWithManualValidation(InvalidFieldsException e) {
         log.error(e.getMessage());
-        return new ErrorResponse(e.getFieldName(), e.getMessage());
+        return new ErrorResponse(
+                String.format("%s.%s", e.getClassName(), e.getFieldName()),
+                e.getMessage());
     }
 
     @ExceptionHandler

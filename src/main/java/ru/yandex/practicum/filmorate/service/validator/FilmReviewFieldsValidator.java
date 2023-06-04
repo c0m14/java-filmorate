@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.service.validator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.InvalidFilmReviewFieldsException;
+import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
 import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.repository.filmReview.FilmReviewStorage;
@@ -15,11 +15,12 @@ public class FilmReviewFieldsValidator {
     public void checkReviewId(Long id, RequestType requestType) {
         if (requestType.equals(RequestType.CREATE)) {
             if (id != null) {
-                throw new InvalidFilmReviewFieldsException("Id", "\"Id\" shouldn't be sent while creation");
+                throw new InvalidFieldsException("FilmReview", "Id", "\"Id\" shouldn't be sent while creation");
             }
         } else if (requestType.equals(RequestType.UPDATE)) {
             if (id == null) {
-                throw new InvalidFilmReviewFieldsException(
+                throw new InvalidFieldsException(
+                        "FilmReview",
                         "id",
                         "\"Id\" shouldn't be empty in update request"
                 );
