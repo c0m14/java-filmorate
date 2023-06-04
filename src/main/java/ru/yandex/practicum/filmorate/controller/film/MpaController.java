@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.service.film.RatingMpaService;
 
-import javax.validation.constraints.Min;
 import java.util.List;
 
 @Slf4j
