@@ -21,7 +21,7 @@ public class MpaController {
 
     @GetMapping("/{id}")
     public RatingMPA getMpaById(
-            @PathVariable("id") @Min(1) int id) {
+            @PathVariable("id") int id) {
         log.debug("Got request to get rating mpa with id {}", id);
         return ratingMpaService.getMpaById(id);
     }
