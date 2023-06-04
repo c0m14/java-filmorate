@@ -60,15 +60,7 @@ public class FilmRepository implements FilmStorage {
             filmGenreDao.setGenresToFilm(filmId, genresIdSet);
         }
 
-        if (!film.getDirectors().isEmpty()) {
-            Set<Integer> directorsIdSet = film.getDirectors()
-                    .stream()
-                    .mapToInt(Director::getId)
-                    .boxed()
-                    .collect(Collectors.toSet());
-
-            directorDao.addDirectorsToFilm(filmId, directorsIdSet);
-        }
+        addDirector(film, filmId);
 
         film.setId(filmId);
         fetchAdditionalParamsToFilmsList(Collections.singletonList(film));
@@ -108,15 +100,7 @@ public class FilmRepository implements FilmStorage {
         }
 
         directorDao.removeDirectorsFromFilm(film.getId());
-        if (!film.getDirectors().isEmpty()) {
-            Set<Integer> directorsIdSet = film.getDirectors()
-                    .stream()
-                    .mapToInt(Director::getId)
-                    .boxed()
-                    .collect(Collectors.toSet());
-
-            directorDao.addDirectorsToFilm(film.getId(), directorsIdSet);
-        }
+        addDirector(film, film.getId());
 
         fetchAdditionalParamsToFilmsList(Collections.singletonList(film));
         return film;
@@ -277,14 +261,13 @@ public class FilmRepository implements FilmStorage {
     public List<Film> getFilmsByDirector(Integer directorId, String sort) {
         directorDao.checkDirectorById(directorId);
         String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
-                "f.mpa_rating_id, mr.mpa_rating_name, d.director_id, d.director_name " +
+                "f.mpa_rating_id, mr.mpa_rating_name, fd.director_id " +
                 "FROM film AS f " +
                 "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
                 "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
                 "LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id " +
-                "LEFT JOIN directors AS d ON fd.director_id = d.director_id " +
-                "WHERE d.director_id = :directorId " +
-                "GROUP BY f.film_id, mr.mpa_rating_name, d.director_id ";
+                "WHERE fd.director_id = :directorId " +
+                "GROUP BY f.film_id, mr.mpa_rating_name, fd.director_id ";
         if (sort.equals(SORT_BY_YEAR)) {
             sqlQuery = sqlQuery + "ORDER BY f.release_date ASC;";
         } else if (sort.equals(SORT_BY_LIKES)) {
@@ -424,6 +407,18 @@ public class FilmRepository implements FilmStorage {
         return filmOptional;
     }
 
+    private void addDirector(Film film, Long filmId) {
+        if (!film.getDirectors().isEmpty()) {
+            Set<Integer> directorsIdSet = film.getDirectors()
+                    .stream()
+                    .mapToInt(Director::getId)
+                    .boxed()
+                    .collect(Collectors.toSet());
+
+            directorDao.addDirectorsToFilm(filmId, directorsIdSet);
+        }
+    }
+
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
         return Film.builder()
                 .id(resultSet.getLong("film_id"))
@@ -438,4 +433,5 @@ public class FilmRepository implements FilmStorage {
                 )
                 .build();
     }
+
 }
