@@ -17,7 +17,8 @@ public class CataloguedFilm {
         filmName = film.getName().toLowerCase();
         filmDirectors.addAll(film.getDirectors()
                 .stream()
-                .map(director -> director.getName().toLowerCase())
+                .map(Director::getName)
+                .map(String::toLowerCase)
                 .collect(Collectors.toList()));
     }
 

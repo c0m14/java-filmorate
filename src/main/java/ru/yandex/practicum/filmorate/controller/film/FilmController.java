@@ -127,8 +127,6 @@ public class FilmController {
         stringBuilder.append(" with substring ").append(query);
         log.debug(stringBuilder.toString());
 
-        by = filmService.validateAndSetParameterByForSearch(by);
-
-        return filmService.searchFilms(query.toLowerCase(), by);
+        return filmService.searchFilms(query, by);
     }
 }

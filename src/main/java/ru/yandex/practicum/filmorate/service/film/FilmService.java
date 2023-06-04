@@ -136,7 +136,7 @@ public class FilmService {
 
     public List<Film> searchFilms(String query, List<String> by) {
         return filmStorage.getFilmsByIdListSortedByPopularity(
-                getFilmIdListBySearchInCatalogue(query, by)
+                getFilmIdListBySearchInCatalogue(query.toLowerCase(), validateAndSetParameterByForSearch(by))
         );
     }
 
