@@ -153,7 +153,7 @@ public class FilmRepository implements FilmStorage {
     public Map<Long, Set<Long>> fillInUserLikes() {
         String sqlQuery = "SELECT u.USER_ID, uf.FILM_ID " +
                 "FROM USERS u " +
-                "LEFT JOIN USER_FILM_LIKES uf ON u.USER_ID = uf.USER_ID";
+                "JOIN USER_FILM_LIKES uf ON u.USER_ID = uf.USER_ID";
 
         Map<Long, Set<Long>> usersLikedFilmsIds = new HashMap<>();
 
@@ -161,13 +161,8 @@ public class FilmRepository implements FilmStorage {
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, namedParams);
         while (rowSet.next()) {
-
             long userId = rowSet.getLong("USER_ID");
             long filmId = rowSet.getLong("FILM_ID");
-
-            if (rowSet.wasNull()) {
-                continue;
-            }
 
             Set<Long> filmIds = usersLikedFilmsIds.computeIfAbsent(userId, k -> new HashSet<>());
             filmIds.add(filmId);
@@ -177,7 +172,6 @@ public class FilmRepository implements FilmStorage {
 
     @Override
     public List<Film> getFilmsByIds(Set<Long> filmIds) {
-
         List<Film> films = new ArrayList<>();
 
         if (filmIds.isEmpty()) {
@@ -185,10 +179,9 @@ public class FilmRepository implements FilmStorage {
             return films;
         }
 
-        StringJoiner filmIdsString = new StringJoiner(",");
-        for (long filmId : filmIds) {
-            filmIdsString.add(String.valueOf(filmId));
-        }
+        String filmIdsString = filmIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
 
         String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
                 "f.mpa_rating_id, mr.mpa_rating_name " +
