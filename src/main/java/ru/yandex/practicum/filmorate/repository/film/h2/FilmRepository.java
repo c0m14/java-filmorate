@@ -8,17 +8,21 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.exception.InvalidFieldsException;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.repository.film.DirectorDao;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_LIKES;
+import static ru.yandex.practicum.filmorate.model.Constants.SORT_BY_YEAR;
 
 @Component
 @Qualifier("H2FilmRepository")
@@ -30,6 +34,7 @@ public class FilmRepository implements FilmStorage {
     private final RatingMpaDao ratingMpaDao;
     private final FilmGenreDao filmGenreDao;
     private final FilmLikesDao filmLikesDao;
+    private final DirectorDao directorDao;
 
     @Override
     @Transactional
@@ -55,7 +60,10 @@ public class FilmRepository implements FilmStorage {
             filmGenreDao.setGenresToFilm(filmId, genresIdSet);
         }
 
+        addDirector(film, filmId);
+
         film.setId(filmId);
+        fetchAdditionalParamsToFilmsList(Collections.singletonList(film));
         return film;
     }
 
@@ -91,6 +99,10 @@ public class FilmRepository implements FilmStorage {
             filmGenreDao.setGenresToFilm(film.getId(), genresIdSet);
         }
 
+        directorDao.removeDirectorsFromFilm(film.getId());
+        addDirector(film, film.getId());
+
+        fetchAdditionalParamsToFilmsList(Collections.singletonList(film));
         return film;
     }
 
@@ -118,26 +130,78 @@ public class FilmRepository implements FilmStorage {
     }
 
     @Override
-    public void giveLikeFromUserToFilm(Long filmId, Long userId) {
-        filmLikesDao.setFilmLike(filmId, userId);
+    public Map<Long, Set<Long>> fillInUserLikes() {
+        String sqlQuery = "SELECT u.USER_ID, uf.FILM_ID " +
+                "FROM USERS u " +
+                "JOIN USER_FILM_LIKES uf ON u.USER_ID = uf.USER_ID";
+
+        Map<Long, Set<Long>> usersLikedFilmsIds = new HashMap<>();
+
+        SqlParameterSource namedParams = new MapSqlParameterSource();
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, namedParams);
+        while (rowSet.next()) {
+            long userId = rowSet.getLong("USER_ID");
+            long filmId = rowSet.getLong("FILM_ID");
+
+            Set<Long> filmIds = usersLikedFilmsIds.computeIfAbsent(userId, k -> new HashSet<>());
+            filmIds.add(filmId);
+        }
+        return usersLikedFilmsIds;
     }
 
     @Override
-    public boolean removeUserLikeFromFilm(Long filmId, Long userId) {
-        return filmLikesDao.removeFilmLike(filmId, userId);
+    public List<Film> getFilmsByIds(Set<Long> filmIds) {
+        List<Film> films = new ArrayList<>();
+
+        if (filmIds.isEmpty()) {
+            log.info("Нет рекомендованных фильмов");
+            return films;
+        }
+
+        String filmIdsString = filmIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "WHERE f.film_id IN (" + filmIdsString + ")";
+
+        films.addAll(jdbcTemplate.query(sqlQuery, this::mapRowToFilm));
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
+        String genreQuery = "";
+        String yearQuery = "";
+        MapSqlParameterSource namedParam = new MapSqlParameterSource("count", count);
+
+        if (genreId != null) {
+            genreQuery = "JOIN film_genre AS fg ON (fg.film_id = f.film_id AND fg.genre_id = :genreId) ";
+            namedParam.addValue("genreId", genreId);
+        }
+
+        if (year != null) {
+            yearQuery = "WHERE EXTRACT(YEAR from f.release_date) = " +
+                    year +
+                    " ";
+        }
+
         String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
                 "f.mpa_rating_id, mr.mpa_rating_name " +
                 "FROM film AS f " +
                 "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
                 "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
+                genreQuery +
+                yearQuery +
                 "GROUP BY f.film_id " +
-                "ORDER BY SUM(likes.user_id) DESC " +
+                "ORDER BY COUNT(likes.user_id) DESC " +
                 "LIMIT :count";
-        SqlParameterSource namedParam = new MapSqlParameterSource("count", count);
+
         List<Film> films;
 
         try {
@@ -151,9 +215,130 @@ public class FilmRepository implements FilmStorage {
 
     }
 
+    @Override
+    public List<Film> getCommonFilms(Long userId, Long otherUserId) {
+        String sqlSubQuery = "(SELECT film_id " +
+                "FROM user_film_likes " +
+                "WHERE user_id = :userId " +
+                "INTERSECT " +
+                "SELECT film_id " +
+                "FROM user_film_likes " +
+                "WHERE user_id = :otherUserId) ";
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
+                "WHERE f.film_id IN " + sqlSubQuery +
+                "GROUP BY f.film_id " +
+                "ORDER BY COUNT(likes.user_id) DESC";
+        SqlParameterSource namedParam = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("otherUserId", otherUserId);
+        List<Film> films;
+
+        try {
+            films = jdbcTemplate.query(sqlQuery, namedParam, this::mapRowToFilm);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
+
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
+    }
+
+    @Override
+    public void removeFilmById(Long filmId) {
+        String sqlQuery = "DELETE FROM film " +
+                "WHERE film_id = :filmId";
+
+        SqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("filmId", filmId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+    }
+
+    public List<Film> getFilmsByDirector(Integer directorId, String sort) {
+        directorDao.checkDirectorById(directorId);
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name, fd.director_id " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
+                "LEFT JOIN film_directors AS fd ON f.film_id = fd.film_id " +
+                "WHERE fd.director_id = :directorId " +
+                "GROUP BY f.film_id, mr.mpa_rating_name, fd.director_id ";
+        if (sort.equals(SORT_BY_YEAR)) {
+            sqlQuery = sqlQuery + "ORDER BY f.release_date ASC;";
+        } else if (sort.equals(SORT_BY_LIKES)) {
+            sqlQuery = sqlQuery + "ORDER BY COUNT(likes.user_id) ASC;";
+        } else {
+            throw new InvalidFieldsException("Film", "Constants", "Wrong sort type in the endpoint");
+        }
+
+        SqlParameterSource namedParam = new MapSqlParameterSource()
+                .addValue("directorId", directorId);
+        List<Film> films;
+
+        try {
+            films = jdbcTemplate.query(sqlQuery, namedParam, this::mapRowToFilm);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
+
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> getFilmsByIdListSortedByPopularity(List<Long> filmIds) {
+        String sqlQuery = "SELECT f.film_id, f.film_name, f.description, f.release_date, f.duration, " +
+                "f.mpa_rating_id, mr.mpa_rating_name " +
+                "FROM film AS f " +
+                "LEFT JOIN mpa_rating AS mr ON f.mpa_rating_id = mr.mpa_rating_id " +
+                "LEFT JOIN user_film_likes AS likes ON f.film_id = likes.film_id " +
+                "WHERE f.film_id IN (:filmIds) " +
+                "GROUP BY f.film_id " +
+                "ORDER BY COUNT(likes.user_id) DESC";
+        SqlParameterSource namedParams = new MapSqlParameterSource("filmIds", filmIds);
+        List<Film> films;
+
+        try {
+            films = jdbcTemplate.query(sqlQuery, namedParams, this::mapRowToFilm);
+        } catch (EmptyResultDataAccessException e) {
+            return List.of();
+        }
+
+        fetchAdditionalParamsToFilmsList(films);
+        return films;
+    }
+
+    @Override
+    public void initiateFilmCatalogue(Map<Long, CataloguedFilm> filmCatalogue) {
+        String sqlQuery = "SELECT f.film_id, f.film_name, d.director_name " +
+                "FROM film f " +
+                "LEFT JOIN film_directors fd ON f.film_id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.director_id";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, new MapSqlParameterSource());
+        while (rowSet.next()) {
+            if (!filmCatalogue.containsKey(rowSet.getLong("film_id"))) {
+                CataloguedFilm film = new CataloguedFilm(rowSet.getString("film_name").toLowerCase());
+                if (rowSet.getString("director_name") != null) {
+                    film.addDirector(rowSet.getString("director_name").toLowerCase());
+                }
+                filmCatalogue.put(rowSet.getLong("film_id"), film);
+            } else {
+                filmCatalogue.get(rowSet.getLong("film_id"))
+                        .addDirector(rowSet.getString("director_name").toLowerCase());
+            }
+        }
+
+    }
+
     private void fetchAdditionalParamsToFilmsList(List<Film> films) {
         fetchGenresToFilms(films);
         fetchLikesToFilms(films);
+        fetchDirectorsToFilms(films);
     }
 
     private void fetchGenresToFilms(List<Film> films) {
@@ -181,6 +366,17 @@ public class FilmRepository implements FilmStorage {
             }
         });
 
+    }
+
+    private void fetchDirectorsToFilms(List<Film> films) {
+        List<Long> filmIds = getIdsFromFilmsList(films);
+        Map<Long, Set<Director>> mapFilmIdToDirectors = directorDao.getDirectorsForFilms(filmIds);
+
+        films.forEach(film -> {
+            if (mapFilmIdToDirectors.containsKey(film.getId())) {
+                film.setDirectors(mapFilmIdToDirectors.get(film.getId()));
+            }
+        });
     }
 
     private List<Long> getIdsFromFilmsList(List<Film> films) {
@@ -211,6 +407,18 @@ public class FilmRepository implements FilmStorage {
         return filmOptional;
     }
 
+    private void addDirector(Film film, Long filmId) {
+        if (!film.getDirectors().isEmpty()) {
+            Set<Integer> directorsIdSet = film.getDirectors()
+                    .stream()
+                    .mapToInt(Director::getId)
+                    .boxed()
+                    .collect(Collectors.toSet());
+
+            directorDao.addDirectorsToFilm(filmId, directorsIdSet);
+        }
+    }
+
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
         return Film.builder()
                 .id(resultSet.getLong("film_id"))
@@ -225,4 +433,5 @@ public class FilmRepository implements FilmStorage {
                 )
                 .build();
     }
+
 }
