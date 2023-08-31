@@ -12,10 +12,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.FriendConfirmationStatus;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.Feed;
+import ru.yandex.practicum.filmorate.model.feed.OperationType;
+import ru.yandex.practicum.filmorate.repository.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +31,7 @@ import java.util.Optional;
 public class UserRepository implements UserStorage {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final FeedStorage feedStorage;
 
     @Override
     public User addUser(User user) {
@@ -97,6 +103,14 @@ public class UserRepository implements UserStorage {
 
         jdbcTemplate.update(sqlQueryAddUserRecord, namedParams);
         jdbcTemplate.update(sqlQueryAddFriendRecord, namedParams);
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(OperationType.ADD)
+                .entityId(friendId)
+                .build();
+        feedStorage.addEvent(feed);
     }
 
     @Override
@@ -163,7 +177,13 @@ public class UserRepository implements UserStorage {
 
         Optional<FriendConfirmationStatus> currentUserFriendStatus = getFriendshipStatus(userId, friendId);
         Optional<FriendConfirmationStatus> currentFriendUserStatus = getFriendshipStatus(friendId, userId);
-
+        Feed feed = Feed.builder()
+                .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(OperationType.REMOVE)
+                .entityId(friendId)
+                .build();
         if (
                 (currentUserFriendStatus.isEmpty() || currentFriendUserStatus.isEmpty()) ||
                         currentUserFriendStatus.get().equals(FriendConfirmationStatus.WAITING_FOR_APPROVAL)
@@ -173,15 +193,28 @@ public class UserRepository implements UserStorage {
 
         if (currentFriendUserStatus.get().equals(FriendConfirmationStatus.CONFIRMED) &&
                 currentUserFriendStatus.get().equals(FriendConfirmationStatus.CONFIRMED)) {
+            feedStorage.addEvent(feed);
             return jdbcTemplate.update(changeFriendStatusForPending, namedParams) > 0;
         }
 
         if (currentUserFriendStatus.get().equals(FriendConfirmationStatus.CONFIRMED) &&
                 currentFriendUserStatus.get().equals(FriendConfirmationStatus.WAITING_FOR_APPROVAL)) {
+            feedStorage.addEvent(feed);
             return jdbcTemplate.update(deleteBothRecordsSqlQuery, namedParams) > 0;
         }
 
         return false;
+    }
+
+    @Override
+    public void removeUserById(Long userId) {
+        String sqlQuery = "DELETE FROM users " +
+                "WHERE user_id = :userId";
+        SqlParameterSource namedParams = new MapSqlParameterSource()
+                .addValue("userId", userId);
+
+        jdbcTemplate.update(sqlQuery, namedParams);
+
     }
 
     private Optional<FriendConfirmationStatus> getFriendshipStatus(Long userId, Long otherUserId) {

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
@@ -15,30 +16,36 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.repository.film.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.film.h2.RatingMpaDao;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.service.recommendations.RecommendationsService;
 import ru.yandex.practicum.filmorate.util.TestDataProducer;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
 public class FilmTest {
 
     private static final String HOST = "http://localhost:";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     HttpHeaders applicationJsonHeaders;
+    private URI usersUrl;
     @Autowired
     private TestRestTemplate testRestTemplate;
+    @Autowired
+    private FilmService filmService;
     @Autowired
     @Qualifier("H2FilmRepository")
     private FilmStorage filmStorage;
     @Autowired
     private RatingMpaDao ratingMpaDao;
+    @Autowired
+    private RecommendationsService recommendationsService;
     @Autowired
     private TestDataProducer testDataProducer;
     @Value(value = "${local.server.port}")
@@ -55,6 +62,7 @@ public class FilmTest {
         applicationJsonHeaders = new HttpHeaders();
         applicationJsonHeaders.setContentType(MediaType.APPLICATION_JSON);
 
+        usersUrl = URI.create(String.format("%s%s/users", HOST, port));
     }
 
     private URI createGetFilmByIdUrl(Long filmId) {
@@ -105,6 +113,24 @@ public class FilmTest {
         );
     }
 
+    private URI createGetCommon(long userId, long otherUserId) {
+        return URI.create(
+                String.format("%s%s/films/common?userId=%d&friendId=%d", HOST, port, userId, otherUserId)
+        );
+    }
+
+    private URI createBadGetSearch() {
+        return URI.create(
+                String.format("%s%s/films/search", HOST, port)
+        );
+    }
+
+    private URI createGetSearch(String query, String by) {
+        return URI.create(
+                String.format("%s%s/films/search?query=%s&by=%s", HOST, port, query, by)
+        );
+    }
+
 
     // =============================== POST /films ======================================
 
@@ -117,10 +143,10 @@ public class FilmTest {
 
         assertNotNull(savedFilm, "Film is not saved in database");
         assertEquals(initialFilm.getName(), savedFilm.getName(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getDescription(), savedFilm.getDescription(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getReleaseDate(), savedFilm.getReleaseDate(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getDuration(), savedFilm.getDuration(), "Incorrect field name in saved film");
-        assertEquals(initialFilm.getMpa().getId(), savedFilm.getMpa().getId(), "Incorrect field name in saved film");
+        assertEquals(initialFilm.getDescription(), savedFilm.getDescription(), "Incorrect field description in saved film");
+        assertEquals(initialFilm.getReleaseDate(), savedFilm.getReleaseDate(), "Incorrect field releaseDate in saved film");
+        assertEquals(initialFilm.getDuration(), savedFilm.getDuration(), "Incorrect field duration in saved film");
+        assertEquals(initialFilm.getMpa().getId(), savedFilm.getMpa().getId(), "Incorrect field mpa in saved film");
     }
 
     @Test
@@ -1058,7 +1084,7 @@ public class FilmTest {
     public void shouldRemoveUserLikeFromFilm() {
         Long toBeLikedFilmId = testDataProducer.addDefaultFilmToDB();
         Long userId = testDataProducer.addDefaultUserToDB();
-        filmStorage.giveLikeFromUserToFilm(toBeLikedFilmId, userId);
+        filmService.giveLikeFromUserToFilm(toBeLikedFilmId, userId);
 
         testRestTemplate.exchange(
                 createGiveOrDeleteLikeUrl(toBeLikedFilmId, userId),
@@ -1259,7 +1285,7 @@ public class FilmTest {
     }
 
     @Test
-    public void shouldReturn400IfGenreIdIsZero() {
+    public void shouldReturn404IfGenreIdIsZero() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetGenreById(0),
@@ -1267,11 +1293,11 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn400IfGenreIdIsNegative() {
+    public void shouldReturn404IfGenreIdIsNegative() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetGenreById(-1),
@@ -1279,7 +1305,7 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -1332,7 +1358,7 @@ public class FilmTest {
     }
 
     @Test
-    public void shouldReturn400IfMpaIdIsZero() {
+    public void shouldReturn404IfMpaIdIsZero() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetMpaById(0),
@@ -1340,11 +1366,11 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
-    public void shouldReturn400IfMpaIdIsNegative() {
+    public void shouldReturn404IfMpaIdIsNegative() {
 
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(
                 createGetMpaById(-1),
@@ -1352,7 +1378,7 @@ public class FilmTest {
                 null,
                 String.class);
 
-        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
     @Test
@@ -1367,4 +1393,302 @@ public class FilmTest {
         assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
     }
 
+    // =============================== GET films/common ======================================
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnCommonFilms() {
+        testDataProducer.createContextWithCommonFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetCommon(1, 2),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+        assertEquals(2, requestedFilms.size(), "Wrong common films list size");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(0),
+                "Wrong most popular common film in response");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(1),
+                "Wrong least popular common film in response");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyCommonFilmsList() {
+        testDataProducer.createContextWithCommonFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetCommon(3, 4),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+        assertEquals(0, requestedFilms.size(), "Wrong common films list size");
+    }
+
+    @Test
+    public void shouldReturn404IfUserDoesNotExist() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetCommon(9999, 1),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn404IfOtherUserDoesNotExist() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetCommon(1, 9999),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(404), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    // =============================== GET films/search ======================================
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnTwoFilmsWithSearchByTitle() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("ever", "title"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(2, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(1),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnOneFilmWithSearchByTitleAndSomethingElse() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("aveRAG", "title,something,else"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(1, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(1L).get(), requestedFilms.get(0),
+                "Wrong found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyListWithSearchByTitle() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("nothing", "title"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(0, requestedFilms.size(), "Wrong searched films size");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnTwoFilmsWithSearchByDirector() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("troVERS", "director"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(2, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(1),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnReturnOneFilmWithSearchByDirectorAndSomethingElse() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("average+director", "director,something,else"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(1, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(1L).get(), requestedFilms.get(0),
+                "Wrong found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyListWithSearchByDirector() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("NOTHING", "director"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(0, requestedFilms.size(), "Wrong searched films size");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnThreeFilmsWithSearchByTitleAndDirector() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("NaMe", "title,director"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(3, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(1L).get(), requestedFilms.get(1),
+                "Wrong average popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(2),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnTwoFilmsWithSearchByTitleDirectorAndSomethingElse() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("controversial", "title,director,something,else"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(2, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(2L).get(), requestedFilms.get(0),
+                "Wrong most popular found film");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(1),
+                "Wrong least popular found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnOneFilmWithSearchWithoutByParameter() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("worst", ""),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(1, requestedFilms.size(), "Wrong searched films size");
+        assertEquals(filmStorage.getFilmByIdFull(3L).get(), requestedFilms.get(0),
+                "Wrong found film");
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void shouldReturnEmptyListWithSearchWithoutByParameter() {
+        testDataProducer.createContextWithSearchFilms();
+
+        List<Film> requestedFilms = testRestTemplate.exchange(
+                createGetSearch("Not+a+thing", ""),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Film>>() {
+                }
+        ).getBody();
+
+        assertEquals(0, requestedFilms.size(), "Wrong searched films size");
+    }
+
+    @Test
+    public void shouldReturn400IfQueryIsNotPresent() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createBadGetSearch(),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldReturn400IfByDoesNotContainTitleOrDirector() {
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                createGetSearch("searchValue", "wrong,search,filters"),
+                HttpMethod.GET,
+                null,
+                String.class);
+
+        assertEquals(HttpStatus.valueOf(400), responseEntity.getStatusCode(), "Wrong status code");
+    }
+
+    @Test
+    public void shouldFillSeveralUserLikes() {
+        Map<Long, Set<Long>> userLikes;
+        Long userId = testDataProducer.addDefaultUserToDB();
+        Long userId2 = testDataProducer.addDefaultUserToDB();
+        Long filmToBeLikedId = testDataProducer.addDefaultFilmToDB();
+        Long filmToBeLikedId2 = testDataProducer.addDefaultFilmToDB();
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(filmToBeLikedId, userId),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(filmToBeLikedId2, userId),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        testRestTemplate.exchange(
+                createGiveOrDeleteLikeUrl(filmToBeLikedId, userId2),
+                HttpMethod.PUT,
+                null,
+                String.class
+        );
+
+        userLikes = filmStorage.fillInUserLikes();
+        assertEquals(2, userLikes.get(userId).size());
+        assertEquals(1, userLikes.get(userId2).size());
+    }
 }

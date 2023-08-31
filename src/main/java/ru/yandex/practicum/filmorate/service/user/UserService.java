@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.UserNotExistException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.RequestType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.user.UserStorage;
@@ -62,8 +62,14 @@ public class UserService {
 
     public User getUserFromStorageById(Long userId) {
         return userStorage.getUserById(userId).orElseThrow(
-                () -> new UserNotExistException(String.format("User with id %d doesn't exist", userId))
-        );
+                () -> new NotExistsException(
+                        "User",
+                        String.format("User with id %d does not exist", userId)
+                ));
     }
 
+    public void removeUserById(Long userId) {
+        userFieldsValidator.checkIfPresentById(userId);
+        userStorage.removeUserById(userId);
+    }
 }

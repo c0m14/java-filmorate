@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.GenreNotExistsException;
+import ru.yandex.practicum.filmorate.exception.NotExistsException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
@@ -34,7 +34,8 @@ public class FilmGenreDao {
         try {
             jdbcTemplate.batchUpdate(sqlQuery, namedParamsList.toArray(SqlParameterSource[]::new));
         } catch (DataIntegrityViolationException e) {
-            throw new GenreNotExistsException(
+            throw new NotExistsException(
+                    "Genre",
                     "One of genres doesn't exist"
             );
         }
@@ -95,8 +96,9 @@ public class FilmGenreDao {
         try {
             genre = jdbcTemplate.queryForObject(sqlQuery, namedParam, this::mapRowToGenre);
         } catch (EmptyResultDataAccessException e) {
-            throw new GenreNotExistsException(
-                    String.format("Genre with id %d doesn't exist", id)
+            throw new NotExistsException(
+                    "Genre",
+                    String.format("Genre with id %d does not exist", id)
             );
         }
 
