@@ -5,6 +5,11 @@
 Основная цель этого приложения - помочь пользователю найти фильм 
 для просмотра ориентируясь на лайки и найти друзей по интересам
 
+### my other edu projects
+- [(1) Kanban (Трекер задач а-ля Jira)](https://github.com/c0m14/java-kanban/blob/main/README.md)
+- [(3) ShareIt ("Шэринг-сервис" - вещи в аренду)](https://github.com/c0m14/java-shareit/blob/main/README.md)
+- [(4) Explore-with-me (Агрегатор мероприятий а-ля Афиша, дипломный проект)](https://github.com/c0m14/graduate_java-explore-with-me/blob/main/README.md)
+
 ### stack
 
 - Java 11
