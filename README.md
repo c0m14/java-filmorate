@@ -5,6 +5,14 @@
 Основная цель этого приложения - помочь пользователю найти фильм 
 для просмотра ориентируясь на лайки и найти друзей по интересам
 
+### stack
+
+- Java 11
+- Spring Boot
+- Lombok
+- JDBCTemplate
+- H2 (as database)
+
 ## main educational purposes
 - Освоить framework Spring Boot
   - Система сборки Maven и управление внешними зависимостями с помощью pom.xml
